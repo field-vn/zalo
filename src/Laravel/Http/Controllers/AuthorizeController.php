@@ -16,16 +16,16 @@ class AuthorizeController
 {
     public function __construct(private readonly Authorizer $authorizer) {}
 
-    /** Chuyển hướng admin OA sang trang cấp quyền của Zalo. */
-    public function redirect(string $oa, OaRepository $oas): RedirectResponse
+    /**
+     * Chuyển hướng admin OA sang trang cấp quyền của Zalo.
+     *
+     * `{oa}` được resolve sẵn thành model bởi Route::bind trong ServiceProvider —
+     * KHÔNG typehint string ở đây, nếu không Laravel sẽ nhồi model vào tham số
+     * string và ném TypeError.
+     */
+    public function redirect(ZaloOa $oa): RedirectResponse
     {
-        $record = $oas->find($oa);
-
-        if (! $record instanceof ZaloOa) {
-            abort(404, "Không tìm thấy OA [{$oa}].");
-        }
-
-        return redirect()->away($this->authorizer->consentUrl($record));
+        return redirect()->away($this->authorizer->consentUrl($oa));
     }
 
     /** Zalo chuyển admin về đây kèm `code`. */

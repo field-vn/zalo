@@ -79,14 +79,25 @@ class ZaloServiceProvider extends ServiceProvider
         });
 
         // Route model binding theo slug: URL đọc được và ổn định hơn id.
-        Route::bind('oa', fn (string $value): ZaloOa => ZaloOa::query()
-            ->with('token')
-            ->where('slug', $value)
-            ->firstOrFail());
+        //
+        // Dùng first() + abort có thông báo thay vì firstOrFail(): 404 trần trụi
+        // khiến người dùng tưởng route chưa đăng ký, trong khi thực ra chỉ là
+        // slug không khớp.
+        Route::bind('oa', function (string $value): ZaloOa {
+            $oa = ZaloOa::query()->with('token')->where('slug', $value)->first();
 
-        Route::bind('bot', fn (string $value): ZaloBot => ZaloBot::query()
-            ->where('slug', $value)
-            ->firstOrFail());
+            abort_if($oa === null, 404, "Không tìm thấy OA `{$value}`. Xem danh sách: php artisan zalo:oa:list");
+
+            return $oa;
+        });
+
+        Route::bind('bot', function (string $value): ZaloBot {
+            $bot = ZaloBot::query()->where('slug', $value)->first();
+
+            abort_if($bot === null, 404, "Không tìm thấy Bot `{$value}`. Xem danh sách: php artisan zalo:bot:list");
+
+            return $bot;
+        });
 
         $this->registerRoutes();
         $this->registerScheduler();

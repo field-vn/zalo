@@ -132,6 +132,30 @@ it('xoá OA thì xoá luôn token', function (): void {
         ->and(ZaloOaToken::query()->count())->toBe(0);
 });
 
+it('route authorize chuyển hướng sang Zalo', function (): void {
+    // Test này thiếu ở vòng trước, nên không bắt được việc AuthorizeController
+    // typehint `string $oa` trong khi Route::bind trả về model.
+    config()->set('zalo.apps.default.app_id', 'app-1');
+    config()->set('zalo.apps.default.app_secret', 'secret-1');
+
+    $oa = makeConnectedOa('ftv');
+
+    $response = $this->withHeaders(['Authorization' => 'Basic '.base64_encode('admin:secret')])
+        ->get("/zalo/oa/{$oa->slug}/authorize");
+
+    $response->assertRedirect();
+    expect($response->headers->get('Location'))
+        ->toStartWith('https://oauth.zaloapp.com/v4/oa/permission')
+        ->toContain('app_id=app-1');
+});
+
+it('route authorize báo 404 CÓ THÔNG BÁO khi slug sai', function (): void {
+    // 404 trần trụi khiến người ta tưởng route chưa đăng ký.
+    $this->withHeaders(['Authorization' => 'Basic '.base64_encode('admin:secret')])
+        ->get('/zalo/oa/khong-ton-tai/authorize')
+        ->assertNotFound();
+});
+
 it('thêm bot và tự điền username', function (): void {
     uiTransport()->push(['data' => ['username' => 'abc_bot']]);
 
