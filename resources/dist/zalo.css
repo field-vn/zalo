@@ -1,0 +1,110 @@
+/*
+ * CSS viết tay, không qua build step.
+ *
+ * Cố ý KHÔNG dùng Tailwind: package sẽ phải commit file build sẵn, và mỗi
+ * lần nâng Tailwind lại phải build lại. Trang quản trị này đủ nhỏ để CSS
+ * thuần là lựa chọn ít rắc rối hơn hẳn.
+ *
+ * Mọi selector đều tiền tố `zl-` để không đụng CSS của dự án.
+ */
+
+:root {
+    --zl-bg: #f6f7f9;
+    --zl-surface: #fff;
+    --zl-border: #e3e6ea;
+    --zl-text: #1a1d21;
+    --zl-muted: #6b7280;
+    --zl-primary: #0068ff;
+    --zl-ok: #0a7f3f;
+    --zl-ok-bg: #e7f6ed;
+    --zl-warn: #a15c00;
+    --zl-warn-bg: #fdf3e2;
+    --zl-err: #b3261e;
+    --zl-err-bg: #fdecea;
+    --zl-radius: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --zl-bg: #16181c;
+        --zl-surface: #1e2126;
+        --zl-border: #2e3238;
+        --zl-text: #e8eaed;
+        --zl-muted: #9aa1ab;
+        --zl-ok-bg: #10291b;
+        --zl-warn-bg: #2c2313;
+        --zl-err-bg: #2d1a18;
+    }
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--zl-bg);
+    color: var(--zl-text);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+.zl-wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+
+.zl-header { background: var(--zl-surface); border-bottom: 1px solid var(--zl-border); }
+.zl-header-inner { display: flex; align-items: center; gap: 28px; height: 56px; }
+.zl-brand { font-weight: 700; color: var(--zl-primary); text-decoration: none; font-size: 17px; }
+.zl-nav { display: flex; gap: 20px; }
+.zl-nav a { color: var(--zl-muted); text-decoration: none; font-size: 14px; padding: 4px 0; border-bottom: 2px solid transparent; }
+.zl-nav a:hover { color: var(--zl-text); }
+.zl-nav a.zl-active { color: var(--zl-text); border-bottom-color: var(--zl-primary); font-weight: 600; }
+
+.zl-main { padding: 28px 20px 48px; }
+.zl-footer { padding: 0 20px 32px; color: var(--zl-muted); font-size: 13px; }
+
+h1 { font-size: 22px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 32px 0 12px; }
+.zl-sub { color: var(--zl-muted); font-size: 14px; margin: 0 0 24px; }
+
+.zl-card { background: var(--zl-surface); border: 1px solid var(--zl-border); border-radius: var(--zl-radius); padding: 18px 20px; margin-bottom: 16px; }
+.zl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+
+.zl-stat-label { color: var(--zl-muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.zl-stat-value { font-size: 15px; margin-top: 4px; word-break: break-all; }
+
+table { width: 100%; border-collapse: collapse; background: var(--zl-surface); border: 1px solid var(--zl-border); border-radius: var(--zl-radius); overflow: hidden; }
+th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--zl-muted); padding: 11px 14px; border-bottom: 1px solid var(--zl-border); font-weight: 600; }
+td { padding: 13px 14px; border-bottom: 1px solid var(--zl-border); font-size: 14px; vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+.zl-table-scroll { overflow-x: auto; }
+
+.zl-badge { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.zl-badge-ok { background: var(--zl-ok-bg); color: var(--zl-ok); }
+.zl-badge-warn { background: var(--zl-warn-bg); color: var(--zl-warn); }
+.zl-badge-err { background: var(--zl-err-bg); color: var(--zl-err); }
+.zl-badge-mute { background: var(--zl-bg); color: var(--zl-muted); }
+
+.zl-alert { padding: 12px 16px; border-radius: var(--zl-radius); margin-bottom: 20px; font-size: 14px; }
+.zl-alert-ok { background: var(--zl-ok-bg); color: var(--zl-ok); }
+.zl-alert-err { background: var(--zl-err-bg); color: var(--zl-err); }
+.zl-alert-warn { background: var(--zl-warn-bg); color: var(--zl-warn); }
+
+.zl-btn { display: inline-block; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--zl-border); background: var(--zl-surface); color: var(--zl-text); font-size: 13px; font-weight: 500; text-decoration: none; cursor: pointer; font-family: inherit; }
+.zl-btn:hover { border-color: var(--zl-muted); }
+.zl-btn-primary { background: var(--zl-primary); border-color: var(--zl-primary); color: #fff; }
+.zl-btn-primary:hover { opacity: .9; border-color: var(--zl-primary); }
+.zl-btn-danger { color: var(--zl-err); }
+.zl-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.zl-actions form { display: inline; }
+
+label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; }
+input[type=text], input[type=password] { width: 100%; padding: 8px 11px; border: 1px solid var(--zl-border); border-radius: 8px; background: var(--zl-bg); color: var(--zl-text); font: inherit; font-size: 14px; }
+input:focus { outline: 2px solid var(--zl-primary); outline-offset: -1px; border-color: transparent; }
+.zl-field { margin-bottom: 14px; }
+.zl-hint { color: var(--zl-muted); font-size: 12px; margin-top: 4px; }
+.zl-form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+
+code, .zl-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+.zl-copy { display: flex; gap: 8px; align-items: center; }
+.zl-copy input { background: var(--zl-bg); }
+
+details > summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 4px 0; }
+.zl-empty { text-align: center; padding: 36px 20px; color: var(--zl-muted); }

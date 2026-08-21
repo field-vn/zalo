@@ -22,10 +22,13 @@ use FieldVn\Zalo\Laravel\Console\RefreshTokensCommand;
 use FieldVn\Zalo\Laravel\Console\StatusCommand;
 use FieldVn\Zalo\Laravel\Http\Middleware\Authorize;
 use FieldVn\Zalo\Laravel\Managers\ZaloManager;
+use FieldVn\Zalo\Laravel\Models\ZaloBot;
+use FieldVn\Zalo\Laravel\Models\ZaloOa;
 use FieldVn\Zalo\Laravel\Repositories\EloquentBotRepository;
 use FieldVn\Zalo\Laravel\Repositories\EloquentOaRepository;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class ZaloServiceProvider extends ServiceProvider
@@ -67,6 +70,23 @@ class ZaloServiceProvider extends ServiceProvider
         // Composer KHÔNG thể tự migrate lúc install — chỉ script của root package
         // mới được chạy, nên đây là cách "tự động" đúng đắn nhất Laravel cho phép.
         $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
+        $this->loadViewsFrom(__DIR__.'/../../resources/views', 'zalo');
+
+        // CSS nhúng thẳng vào layout — không cần vendor:publish và không bao
+        // giờ lệch phiên bản với package sau khi composer update.
+        View::composer('zalo::layout', function ($view): void {
+            $view->with('zaloCss', (string) file_get_contents(__DIR__.'/../../resources/dist/zalo.css'));
+        });
+
+        // Route model binding theo slug: URL đọc được và ổn định hơn id.
+        Route::bind('oa', fn (string $value): ZaloOa => ZaloOa::query()
+            ->with('token')
+            ->where('slug', $value)
+            ->firstOrFail());
+
+        Route::bind('bot', fn (string $value): ZaloBot => ZaloBot::query()
+            ->where('slug', $value)
+            ->firstOrFail());
 
         $this->registerRoutes();
         $this->registerScheduler();
@@ -153,6 +173,11 @@ class ZaloServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../../database/migrations' => database_path('migrations'),
         ], 'zalo-migrations');
+
+        // Chỉ cần khi muốn sửa giao diện; UI chạy được mà không publish gì cả.
+        $this->publishes([
+            __DIR__.'/../../resources/views' => resource_path('views/vendor/zalo'),
+        ], 'zalo-views');
     }
 
     /** @return list<string> */

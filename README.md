@@ -71,6 +71,10 @@ App credentials **không bao giờ** vào DB hay UI. Đây là hằng số của
 
 ### UI
 
+Truy cập `https://your-app.com/zalo` — có 3 màn hình: tổng quan (sức khoẻ token, webhook URL để copy), quản lý OA, quản lý Bot.
+
+Giao diện **không cần build step và không cần `vendor:publish`**: CSS viết tay nhúng thẳng vào layout, không JavaScript framework. Muốn sửa giao diện thì `php artisan vendor:publish --tag=zalo-views`.
+
 ```dotenv
 ZALO_UI_ENABLED=true
 ZALO_UI_PATH=zalo

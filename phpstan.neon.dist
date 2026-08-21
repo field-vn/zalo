@@ -6,3 +6,15 @@ parameters:
     paths:
         - src
     tmpDir: build/phpstan
+
+    ignoreErrors:
+        # Larastan không phân giải được view namespace của package (`zalo::…`):
+        # namespace chỉ tồn tại sau khi loadViewsFrom() chạy lúc boot, nên nó
+        # không biết `zalo::dashboard` là một view có thật.
+        #
+        # Đây là giới hạn của phân tích tĩnh, không phải vấn đề của code —
+        # bù lại bằng test HTTP thật sự render từng view.
+        -
+            identifier: argument.type
+            message: '#Parameter \#1 \$view of function view expects view-string\|null, string given\.#'
+            path: src/Laravel/Http/Controllers/*.php
