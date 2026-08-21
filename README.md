@@ -38,6 +38,25 @@ php artisan zalo:install
 
 Lệnh này kiểm tra env, publish config, migrate, và cảnh báo những thứ bạn dễ quên (cron cho scheduler, credential cho UI, HTTPS).
 
+## Kết nối OA đầu tiên
+
+```bash
+php artisan zalo:oa:add
+```
+
+Nhập tên, slug và OA ID (lấy ở trang quản trị Zalo OA), rồi lệnh sẽ hỏi có cấp quyền luôn không.
+
+Luồng cấp quyền in ra một link — mở bằng tài khoản **admin của OA**, bấm đồng ý. Nếu callback truy cập được từ Internet thì token tự lưu; nếu đang chạy localhost, copy giá trị `code` trên thanh địa chỉ dán vào terminal.
+
+> **Redirect URI phải khớp CHÍNH XÁC** giá trị khai trong Zalo Developers. Lệnh `zalo:authorize` in sẵn giá trị đúng để bạn copy.
+
+Kiểm tra bất cứ lúc nào:
+
+```bash
+php artisan zalo:oa:list
+php artisan zalo:oa:test cskh
+```
+
 ## Cấu hình
 
 ### Zalo App — chỉ ở env
@@ -145,6 +164,10 @@ Zalo::oa('cskh')->request()->get('/v3.0/oa/duong-dan-moi', ['param' => 'x']);
 | `zalo` | Trạng thái: OA nào sống, token còn bao lâu |
 | `zalo:install` | Cài đặt |
 | `zalo:doctor` | Chẩn đoán cấu hình kèm cách sửa |
+| `zalo:oa:add` | Thêm OA |
+| `zalo:oa:list` | Liệt kê OA và trạng thái token |
+| `zalo:oa:test {oa}` | Gọi thử API, xác nhận kết nối còn sống |
+| `zalo:authorize {oa}` | Cấp quyền, lấy token lần đầu |
 | `zalo:token:refresh` | `{oa?}` · `--all` · `--force` |
 
 ## Events

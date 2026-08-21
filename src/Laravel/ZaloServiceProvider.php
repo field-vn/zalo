@@ -9,14 +9,20 @@ use FieldVn\Zalo\Contracts\Factory;
 use FieldVn\Zalo\Contracts\OaRepository;
 use FieldVn\Zalo\Contracts\Transport;
 use FieldVn\Zalo\Core\Http\GuzzleTransport;
+use FieldVn\Zalo\Laravel\Console\AuthorizeCommand;
 use FieldVn\Zalo\Laravel\Console\DoctorCommand;
 use FieldVn\Zalo\Laravel\Console\InstallCommand;
+use FieldVn\Zalo\Laravel\Console\OaAddCommand;
+use FieldVn\Zalo\Laravel\Console\OaListCommand;
+use FieldVn\Zalo\Laravel\Console\OaTestCommand;
 use FieldVn\Zalo\Laravel\Console\RefreshTokensCommand;
 use FieldVn\Zalo\Laravel\Console\StatusCommand;
+use FieldVn\Zalo\Laravel\Http\Middleware\Authorize;
 use FieldVn\Zalo\Laravel\Managers\ZaloManager;
 use FieldVn\Zalo\Laravel\Repositories\EloquentBotRepository;
 use FieldVn\Zalo\Laravel\Repositories\EloquentOaRepository;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 class ZaloServiceProvider extends ServiceProvider
@@ -59,6 +65,7 @@ class ZaloServiceProvider extends ServiceProvider
         // mới được chạy, nên đây là cách "tự động" đúng đắn nhất Laravel cho phép.
         $this->loadMigrationsFrom(__DIR__.'/../../database/migrations');
 
+        $this->registerRoutes();
         $this->registerScheduler();
 
         if ($this->app->runningInConsole()) {
@@ -69,8 +76,31 @@ class ZaloServiceProvider extends ServiceProvider
                 DoctorCommand::class,
                 StatusCommand::class,
                 RefreshTokensCommand::class,
+                AuthorizeCommand::class,
+                OaAddCommand::class,
+                OaListCommand::class,
+                OaTestCommand::class,
             ]);
         }
+    }
+
+    protected function registerRoutes(): void
+    {
+        if (! config('zalo.ui.enabled', true)) {
+            return;
+        }
+
+        /** @var list<string> $middleware */
+        $middleware = (array) config('zalo.ui.middleware', ['web']);
+
+        Route::group([
+            'prefix' => (string) config('zalo.ui.path', 'zalo'),
+            // Authorize luôn được nối vào cuối — người dùng đổi `ui.middleware`
+            // không được phép vô tình gỡ mất lớp bảo vệ.
+            'middleware' => [...$middleware, Authorize::class],
+        ], function (): void {
+            $this->loadRoutesFrom(__DIR__.'/../../routes/ui.php');
+        });
     }
 
     protected function registerScheduler(): void
