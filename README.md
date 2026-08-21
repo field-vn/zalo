@@ -170,14 +170,60 @@ Zalo::oa('cskh')->request()->get('/v3.0/oa/duong-dan-moi', ['param' => 'x']);
 | `zalo:authorize {oa}` | Cấp quyền, lấy token lần đầu |
 | `zalo:token:refresh` | `{oa?}` · `--all` · `--force` |
 
-## Events
+## Nhận tin nhắn (Webhook)
 
-```php
-use FieldVn\Zalo\Laravel\Events\ZaloOaConnected;
-use FieldVn\Zalo\Laravel\Events\ZaloOaDisconnected;
+```dotenv
+ZALO_WEBHOOK_SECRET=      # "OA Secret Key" trong cài đặt webhook của ứng dụng
 ```
 
-`ZaloOaDisconnected` bắn khi OA mất kết nối và cần cấp quyền lại thủ công. Package **không** tự gửi cảnh báo — nó không thể đoán bạn muốn nhận qua Slack, email hay hệ thống giám sát nào.
+> `ZALO_WEBHOOK_SECRET` **khác** `ZALO_APP_SECRET`. Đây là *OA Secret Key* trong phần cài đặt webhook, không phải secret của ứng dụng.
+
+Khai URL này trong Zalo Developers:
+
+```
+https://your-app.com/zalo/webhook
+```
+
+Rồi lắng nghe:
+
+```php
+use FieldVn\Zalo\Laravel\Events\ZaloMessageReceived;
+
+class TraLoiTinNhan
+{
+    public function handle(ZaloMessageReceived $e): void
+    {
+        if ($e->text === null || $e->oa === null) {
+            return;
+        }
+
+        zalo_oa($e->oa->slug)->messages()->text($e->userId, "Bạn vừa nói: {$e->text}");
+    }
+}
+```
+
+| Event | Khi nào |
+|---|---|
+| `ZaloWebhookReceived` | **Mọi** sự kiện, kể cả loại package chưa bọc riêng |
+| `ZaloMessageReceived` | Người dùng gửi tin nhắn |
+| `ZaloFollowerAdded` | Người dùng quan tâm OA |
+| `ZaloFollowerRemoved` | Người dùng bỏ quan tâm |
+| `ZaloOaConnected` | OA vừa được cấp quyền |
+| `ZaloOaDisconnected` | OA mất kết nối, cần cấp quyền lại |
+
+Zalo liên tục thêm loại sự kiện mới, nên `ZaloWebhookReceived` luôn được bắn cho tất cả — bạn không phải chờ package cập nhật mới bắt được chúng.
+
+**Vài điểm đáng biết:**
+
+- Route webhook **không** đi qua auth của UI. Zalo không đăng nhập được; chữ ký `X-ZEvent-Signature` là lớp bảo vệ duy nhất và đủ.
+- Chưa cấu hình `ZALO_WEBHOOK_SECRET` thì mọi webhook bị từ chối 401 — fail-closed, không im lặng cho qua.
+- Mặc định xử lý qua queue (`ZALO_WEBHOOK_QUEUE=true`). Zalo có timeout và sẽ gửi lại nếu không nhận được 200 kịp.
+- Lỗi trong listener của bạn **không** làm webhook trả 500 — nếu trả, Zalo sẽ gửi lại và bạn xử lý trùng.
+- Chống trùng nên dựa vào `$e->messageId`, không dựa vào timestamp.
+
+Bật `ZALO_WEBHOOK_LOG=true` để ghi payload vào `zl_webhook_logs` khi cần debug (mặc định tắt vì payload chứa nội dung tin nhắn của người dùng).
+
+Package **không** tự gửi cảnh báo khi OA mất kết nối — nó không thể đoán bạn muốn nhận qua Slack, email hay hệ thống giám sát nào. Lắng nghe `ZaloOaDisconnected` và tự xử lý.
 
 ## Điểm mở rộng
 

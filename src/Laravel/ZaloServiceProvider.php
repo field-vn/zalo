@@ -86,6 +86,12 @@ class ZaloServiceProvider extends ServiceProvider
 
     protected function registerRoutes(): void
     {
+        $this->registerUiRoutes();
+        $this->registerWebhookRoutes();
+    }
+
+    protected function registerUiRoutes(): void
+    {
         if (! config('zalo.ui.enabled', true)) {
             return;
         }
@@ -100,6 +106,21 @@ class ZaloServiceProvider extends ServiceProvider
             'middleware' => [...$middleware, Authorize::class],
         ], function (): void {
             $this->loadRoutesFrom(__DIR__.'/../../routes/ui.php');
+        });
+    }
+
+    protected function registerWebhookRoutes(): void
+    {
+        if (! config('zalo.webhook.enabled', true)) {
+            return;
+        }
+
+        // Không middleware: Zalo gọi vào, không có session và không có CSRF
+        // token. Chữ ký X-ZEvent-Signature là lớp bảo vệ duy nhất và đủ.
+        Route::group([
+            'prefix' => (string) config('zalo.webhook.path', 'zalo/webhook'),
+        ], function (): void {
+            $this->loadRoutesFrom(__DIR__.'/../../routes/webhook.php');
         });
     }
 

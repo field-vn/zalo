@@ -15,5 +15,7 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 - UI bảo vệ bằng basic auth + IP allowlist, fail-closed
 - Commands: `zalo`, `zalo:install`, `zalo:doctor`, `zalo:oa:add`,
   `zalo:oa:list`, `zalo:oa:test`, `zalo:authorize`, `zalo:token:refresh`
-- Events: `ZaloOaConnected`, `ZaloOaDisconnected`
+- Webhook: xác thực `X-ZEvent-Signature`, xử lý qua queue, chống replay
+- Events: `ZaloWebhookReceived`, `ZaloMessageReceived`, `ZaloFollowerAdded`,
+  `ZaloFollowerRemoved`, `ZaloOaConnected`, `ZaloOaDisconnected`
 - Prefix bảng cấu hình được qua `ZALO_TABLE_PREFIX` (mặc định `zl_`)

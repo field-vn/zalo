@@ -21,5 +21,6 @@ it('liệt kê mọi bảng package quản lý', function (): void {
         'zl_oa_tokens',
         'zl_bots',
         'zl_audit_logs',
+        'zl_webhook_logs',
     ]);
 });

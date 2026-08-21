@@ -39,6 +39,11 @@ return [
         'default' => [
             'app_id' => env('ZALO_APP_ID'),
             'app_secret' => env('ZALO_APP_SECRET'),
+
+            // KHÁC app_secret. Đây là "OA Secret Key" trong phần cài đặt
+            // webhook của ứng dụng, dùng để xác thực X-ZEvent-Signature.
+            'webhook_secret' => env('ZALO_WEBHOOK_SECRET'),
+
             'redirect' => env('ZALO_APP_REDIRECT')
                 ?: '/'.trim((string) env('ZALO_UI_PATH', 'zalo'), '/').'/oauth/callback',
         ],
@@ -124,11 +129,33 @@ return [
     |--------------------------------------------------------------------------
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Webhook
+    |--------------------------------------------------------------------------
+    |
+    | Secret nằm trong `apps.*.webhook_secret` vì nó thuộc về từng ứng dụng,
+    | không phải cấu hình toàn cục.
+    |
+    | Route webhook KHÔNG đi qua middleware của UI — Zalo gọi vào, không phải
+    | người dùng. Bảo vệ duy nhất và đủ là chữ ký X-ZEvent-Signature.
+    |
+    */
+
     'webhook' => [
         'enabled' => (bool) env('ZALO_WEBHOOK_ENABLED', true),
         'path' => env('ZALO_WEBHOOK_PATH', 'zalo/webhook'),
-        'secret' => env('ZALO_WEBHOOK_SECRET'),
+
+        // Xử lý qua queue: Zalo có timeout và sẽ gửi lại nếu không nhận được
+        // 200 kịp. Việc nặng phải đẩy ra khỏi vòng đời request.
         'queue' => (bool) env('ZALO_WEBHOOK_QUEUE', true),
+        'queue_name' => env('ZALO_WEBHOOK_QUEUE_NAME'),
+
+        // Cửa sổ chấp nhận timestamp (giây). 0 = tắt kiểm tra.
+        'tolerance' => (int) env('ZALO_WEBHOOK_TOLERANCE', 300),
+
+        // Ghi payload vào zl_webhook_logs để soi khi debug. Tắt mặc định vì
+        // payload chứa nội dung tin nhắn của người dùng.
         'log' => (bool) env('ZALO_WEBHOOK_LOG', false),
     ],
 

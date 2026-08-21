@@ -28,6 +28,7 @@ final class Table
         self::OA_TOKENS,
         self::BOTS,
         self::AUDIT_LOGS,
+        self::WEBHOOK_LOGS,
     ];
 
     public static function prefix(): string
