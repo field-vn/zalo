@@ -1,7 +1,7 @@
 {
     "name": "field-vn/zalo",
-    "description": "Zalo OA & Bot SDK cho Laravel",
-    "keywords": ["laravel", "php", "zalo"],
+    "description": "Zalo OA & Bot SDK cho Laravel — quản lý nhiều OA, tự refresh token, có UI cấu hình",
+    "keywords": ["laravel", "php", "zalo", "zalo-oa", "zalo-bot", "vietnam", "chatbot"],
     "homepage": "https://github.com/field-vn/zalo",
     "license": "MIT",
     "authors": [
@@ -12,18 +12,25 @@
     ],
     "require": {
         "php": "^8.2",
+        "ext-json": "*",
+        "guzzlehttp/guzzle": "^7.5",
+        "illuminate/console": "^10.0|^11.0|^12.0",
+        "illuminate/database": "^10.0|^11.0|^12.0",
         "illuminate/support": "^10.0|^11.0|^12.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^8.0|^9.0|^10.0",
-        "pestphp/pest": "^2.0|^3.0",
         "larastan/larastan": "^2.0|^3.0",
-        "laravel/pint": "^1.0"
+        "laravel/pint": "^1.0",
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "pestphp/pest": "^2.0|^3.0"
     },
     "autoload": {
         "psr-4": {
             "FieldVn\\Zalo\\": "src/"
-        }
+        },
+        "files": [
+            "src/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
@@ -34,7 +41,10 @@
         "laravel": {
             "providers": [
                 "FieldVn\\Zalo\\Laravel\\ZaloServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "Zalo": "FieldVn\\Zalo\\Laravel\\Facades\\Zalo"
+            }
         }
     },
     "scripts": {
