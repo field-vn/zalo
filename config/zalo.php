@@ -37,9 +37,9 @@ return [
 
     'apps' => [
         'default' => [
-            'app_id'     => env('ZALO_APP_ID'),
+            'app_id' => env('ZALO_APP_ID'),
             'app_secret' => env('ZALO_APP_SECRET'),
-            'redirect'   => env('ZALO_APP_REDIRECT')
+            'redirect' => env('ZALO_APP_REDIRECT')
                 ?: '/'.trim((string) env('ZALO_UI_PATH', 'zalo'), '/').'/oauth/callback',
         ],
     ],
@@ -51,10 +51,10 @@ return [
     */
 
     'endpoints' => [
-        'oa'            => 'https://openapi.zalo.me',
-        'oauth'         => 'https://oauth.zaloapp.com/v4',
+        'oa' => 'https://openapi.zalo.me',
+        'oauth' => 'https://oauth.zaloapp.com/v4',
         'oauth_consent' => 'https://oauth.zaloapp.com/v4/oa/permission',
-        'bot'           => 'https://bot-api.zapps.me/bot',
+        'bot' => 'https://bot-api.zapps.me/bot',
     ],
 
     /*
@@ -64,12 +64,12 @@ return [
     */
 
     'http' => [
-        'timeout'         => (int) env('ZALO_HTTP_TIMEOUT', 10),
+        'timeout' => (int) env('ZALO_HTTP_TIMEOUT', 10),
         'connect_timeout' => (int) env('ZALO_HTTP_CONNECT_TIMEOUT', 5),
-        'retry'           => [
+        'retry' => [
             'times' => (int) env('ZALO_HTTP_RETRY', 3),
             'sleep' => 200,                       // ms, nhân đôi mỗi lần
-            'on'    => [429, 500, 502, 503, 504],
+            'on' => [429, 500, 502, 503, 504],
         ],
     ],
 
@@ -87,10 +87,10 @@ return [
     */
 
     'scheduler' => [
-        'enabled'        => (bool) env('ZALO_SCHEDULER', true),
+        'enabled' => (bool) env('ZALO_SCHEDULER', true),
         'refresh_before' => 15,   // phút — refresh access_token trước khi hết hạn
-        'rotate_before'  => 14,   // ngày  — refresh cưỡng bức để xoay refresh_token
-        'max_failures'   => 3,    // lỗi liên tiếp thì đánh dấu OA ngắt kết nối
+        'rotate_before' => 14,   // ngày  — refresh cưỡng bức để xoay refresh_token
+        'max_failures' => 3,    // lỗi liên tiếp thì đánh dấu OA ngắt kết nối
     ],
 
     /*
@@ -107,11 +107,11 @@ return [
     */
 
     'ui' => [
-        'enabled'     => (bool) env('ZALO_UI_ENABLED', true),
-        'path'        => env('ZALO_UI_PATH', 'zalo'),
-        'middleware'  => ['web'],
-        'user'        => env('ZALO_UI_USER'),
-        'password'    => env('ZALO_UI_PASSWORD'),
+        'enabled' => (bool) env('ZALO_UI_ENABLED', true),
+        'path' => env('ZALO_UI_PATH', 'zalo'),
+        'middleware' => ['web'],
+        'user' => env('ZALO_UI_USER'),
+        'password' => env('ZALO_UI_PASSWORD'),
         'allowed_ips' => array_values(array_filter(array_map(
             'trim',
             explode(',', (string) env('ZALO_UI_ALLOWED_IPS'))
@@ -126,10 +126,10 @@ return [
 
     'webhook' => [
         'enabled' => (bool) env('ZALO_WEBHOOK_ENABLED', true),
-        'path'    => env('ZALO_WEBHOOK_PATH', 'zalo/webhook'),
-        'secret'  => env('ZALO_WEBHOOK_SECRET'),
-        'queue'   => (bool) env('ZALO_WEBHOOK_QUEUE', true),
-        'log'     => (bool) env('ZALO_WEBHOOK_LOG', false),
+        'path' => env('ZALO_WEBHOOK_PATH', 'zalo/webhook'),
+        'secret' => env('ZALO_WEBHOOK_SECRET'),
+        'queue' => (bool) env('ZALO_WEBHOOK_QUEUE', true),
+        'log' => (bool) env('ZALO_WEBHOOK_LOG', false),
     ],
 
 ];

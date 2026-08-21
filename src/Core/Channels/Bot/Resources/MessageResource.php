@@ -12,7 +12,7 @@ final class MessageResource extends Resource
     {
         return $this->request->post('/sendMessage', [
             'chat_id' => $chatId,
-            'text'    => $text,
+            'text' => $text,
         ])->throwIfFailed();
     }
 

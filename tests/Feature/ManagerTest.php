@@ -10,9 +10,9 @@ use FieldVn\Zalo\Laravel\Models\ZaloOa;
 function makeOa(array $attributes = []): ZaloOa
 {
     return ZaloOa::create(array_merge([
-        'name'      => 'CSKH Shop',
-        'slug'      => 'cskh',
-        'oa_id'     => '1234567890',
+        'name' => 'CSKH Shop',
+        'slug' => 'cskh',
+        'oa_id' => '1234567890',
         'is_active' => true,
     ], $attributes));
 }

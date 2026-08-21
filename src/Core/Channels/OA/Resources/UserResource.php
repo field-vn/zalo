@@ -21,7 +21,7 @@ final class UserResource extends Resource
         return $this->request->get('/v3.0/oa/user/getlist', [
             'data' => json_encode([
                 'offset' => $offset,
-                'count'  => min($count, 50),
+                'count' => min($count, 50),
             ], JSON_THROW_ON_ERROR),
         ])->throwIfFailed();
     }

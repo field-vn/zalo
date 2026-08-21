@@ -12,7 +12,7 @@ final class UpdateResource extends Resource
     public function poll(int $offset = 0, int $timeout = 30): Response
     {
         return $this->request->get('/getUpdates', [
-            'offset'  => $offset,
+            'offset' => $offset,
             'timeout' => $timeout,
         ])->throwIfFailed();
     }

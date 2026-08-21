@@ -16,7 +16,7 @@ final class TagResource extends Resource
     public function assign(string $userId, string $tagName): Response
     {
         return $this->request->post('/v3.0/oa/tag/tagfollower', [
-            'user_id'  => $userId,
+            'user_id' => $userId,
             'tag_name' => $tagName,
         ])->throwIfFailed();
     }
@@ -24,7 +24,7 @@ final class TagResource extends Resource
     public function remove(string $userId, string $tagName): Response
     {
         return $this->request->post('/v3.0/oa/tag/rmfollowerfromtag', [
-            'user_id'  => $userId,
+            'user_id' => $userId,
             'tag_name' => $tagName,
         ])->throwIfFailed();
     }

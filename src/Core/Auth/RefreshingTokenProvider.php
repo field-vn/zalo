@@ -28,8 +28,7 @@ final class RefreshingTokenProvider
         private readonly TokenStore $store,
         private readonly int $refreshBeforeMinutes = 15,
         private readonly int $rotateBeforeDays = 14,
-    ) {
-    }
+    ) {}
 
     public function accessToken(): string
     {
@@ -38,7 +37,7 @@ final class RefreshingTokenProvider
 
     public function tokens(?DateTimeImmutable $now = null): TokenPair
     {
-        $now     = $now ?? new DateTimeImmutable();
+        $now = $now ?? new DateTimeImmutable;
         $current = $this->store->get();
 
         if ($current === null) {

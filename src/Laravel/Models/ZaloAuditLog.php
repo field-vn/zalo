@@ -14,7 +14,7 @@ class ZaloAuditLog extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'changes'    => 'array',
+        'changes' => 'array',
         'created_at' => 'datetime',
     ];
 
@@ -32,12 +32,12 @@ class ZaloAuditLog extends Model
         ?string $actor = null,
     ): self {
         return self::create([
-            'action'       => $action,
+            'action' => $action,
             'subject_type' => $subject ? $subject::class : null,
-            'subject_id'   => $subject?->getKey(),
-            'changes'      => $changes ?: null,
-            'ip'           => $ip ?? request()?->ip(),
-            'actor'        => $actor,
+            'subject_id' => $subject?->getKey(),
+            'changes' => $changes ?: null,
+            'ip' => $ip ?? request()->ip(),
+            'actor' => $actor,
         ]);
     }
 }

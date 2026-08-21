@@ -20,6 +20,5 @@ class ZaloOaDisconnected
     public function __construct(
         public readonly ZaloOa $oa,
         public readonly string $reason,
-    ) {
-    }
+    ) {}
 }

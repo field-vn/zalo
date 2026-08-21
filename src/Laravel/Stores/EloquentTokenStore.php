@@ -12,9 +12,7 @@ use FieldVn\Zalo\Laravel\Models\ZaloOaToken;
 
 final class EloquentTokenStore implements TokenStore
 {
-    public function __construct(private readonly ZaloOa $oa)
-    {
-    }
+    public function __construct(private readonly ZaloOa $oa) {}
 
     public function get(): ?TokenPair
     {
@@ -31,9 +29,9 @@ final class EloquentTokenStore implements TokenStore
             : new DateTimeImmutable('-1 second');
 
         return new TokenPair(
-            accessToken:      $record->access_token,
-            refreshToken:     $record->refresh_token,
-            expiresAt:        $expiresAt,
+            accessToken: $record->access_token,
+            refreshToken: $record->refresh_token,
+            expiresAt: $expiresAt,
             refreshExpiresAt: $record->refresh_expires_at !== null
                 ? new DateTimeImmutable($record->refresh_expires_at->toDateTimeString())
                 : null,
@@ -45,12 +43,12 @@ final class EloquentTokenStore implements TokenStore
         ZaloOaToken::updateOrCreate(
             ['oa_id' => $this->oa->getKey()],
             [
-                'access_token'       => $tokens->accessToken,
-                'refresh_token'      => $tokens->refreshToken,
-                'expires_at'         => $tokens->expiresAt,
+                'access_token' => $tokens->accessToken,
+                'refresh_token' => $tokens->refreshToken,
+                'expires_at' => $tokens->expiresAt,
                 'refresh_expires_at' => $tokens->refreshExpiresAt,
-                'last_refreshed_at'  => now(),
-                'last_error'         => null,
+                'last_refreshed_at' => now(),
+                'last_error' => null,
             ],
         );
 
@@ -72,7 +70,7 @@ final class EloquentTokenStore implements TokenStore
         }
 
         $record->forceFill([
-            'last_error'      => $message,
+            'last_error' => $message,
             'failed_attempts' => $record->failed_attempts + 1,
         ])->save();
     }

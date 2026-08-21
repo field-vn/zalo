@@ -29,8 +29,7 @@ final class BotChannel implements Channel
         private readonly Transport $transport,
         private readonly string $token,
         private readonly string $baseUrl = 'https://bot-api.zapps.me/bot',
-    ) {
-    }
+    ) {}
 
     public function key(): string
     {

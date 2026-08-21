@@ -50,7 +50,7 @@
     "scripts": {
         "test": "pest",
         "test:coverage": "pest --coverage",
-        "analyse": "phpstan analyse",
+        "analyse": "phpstan analyse --memory-limit=1G",
         "format": "pint"
     },
     "config": {

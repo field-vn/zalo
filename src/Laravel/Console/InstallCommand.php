@@ -44,9 +44,9 @@ class InstallCommand extends Command
     {
         $this->step(1, 'Kiểm tra Zalo App trong env');
 
-        $appId  = (string) config('zalo.apps.default.app_id');
+        $appId = (string) config('zalo.apps.default.app_id');
         $secret = (string) config('zalo.apps.default.app_secret');
-        $ok     = true;
+        $ok = true;
 
         if ($appId !== '') {
             $this->ok('ZALO_APP_ID        '.$this->maskId($appId));
@@ -101,7 +101,7 @@ class InstallCommand extends Command
         }
 
         $this->callSilently('vendor:publish', [
-            '--tag'   => 'zalo-config',
+            '--tag' => 'zalo-config',
             '--force' => true,
         ]);
 
@@ -129,9 +129,9 @@ class InstallCommand extends Command
     {
         $this->step(4, 'Bảo mật UI');
 
-        $user     = (string) config('zalo.ui.user');
+        $user = (string) config('zalo.ui.user');
         $password = (string) config('zalo.ui.password');
-        $ips      = (array) config('zalo.ui.allowed_ips');
+        $ips = (array) config('zalo.ui.allowed_ips');
 
         $user !== ''
             ? $this->ok('ZALO_UI_USER          '.$user)

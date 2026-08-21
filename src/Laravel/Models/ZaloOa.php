@@ -11,15 +11,15 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * @property int                    $id
- * @property string                 $app_key
- * @property string                 $name
- * @property string                 $slug
- * @property string                 $oa_id
- * @property string|null            $avatar_url
- * @property array<int, string>     $tags
- * @property bool                   $is_active
- * @property ZaloOaToken|null       $token
+ * @property int $id
+ * @property string $app_key
+ * @property string $name
+ * @property string $slug
+ * @property string $oa_id
+ * @property string|null $avatar_url
+ * @property array<int, string> $tags
+ * @property bool $is_active
+ * @property ZaloOaToken|null $token
  */
 class ZaloOa extends Model
 {
@@ -28,8 +28,8 @@ class ZaloOa extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'tags'      => 'array',
-        'meta'      => 'array',
+        'tags' => 'array',
+        'meta' => 'array',
         'is_active' => 'boolean',
     ];
 
@@ -39,6 +39,7 @@ class ZaloOa extends Model
         return Table::name(Table::OAS);
     }
 
+    /** @return HasOne<ZaloOaToken, $this> */
     public function token(): HasOne
     {
         return $this->hasOne(ZaloOaToken::class, 'oa_id');
@@ -50,7 +51,11 @@ class ZaloOa extends Model
         $query->where('is_active', true);
     }
 
-    /** Cấu hình App tương ứng — lấy từ config, không phải DB. */
+    /**
+     * Cấu hình App tương ứng — lấy từ config, không phải DB.
+     *
+     * @return array<string, mixed>|null
+     */
     public function appConfig(): ?array
     {
         /** @var array<string, mixed>|null $config */

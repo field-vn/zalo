@@ -22,8 +22,7 @@ final class Response implements ArrayAccess
         public readonly int $status,
         public readonly array $data = [],
         public readonly string $raw = '',
-    ) {
-    }
+    ) {}
 
     public function successful(): bool
     {

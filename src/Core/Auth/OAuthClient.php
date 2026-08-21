@@ -21,16 +21,15 @@ final class OAuthClient
         private readonly string $appSecret,
         private readonly string $oauthBase = 'https://oauth.zaloapp.com/v4',
         private readonly string $consentUrl = 'https://oauth.zaloapp.com/v4/oa/permission',
-    ) {
-    }
+    ) {}
 
     /** URL để admin OA bấm vào và cấp quyền. */
     public function consentUrl(string $redirectUri, string $state): string
     {
         return $this->consentUrl.'?'.http_build_query([
-            'app_id'       => $this->appId,
+            'app_id' => $this->appId,
             'redirect_uri' => $redirectUri,
-            'state'        => $state,
+            'state' => $state,
         ]);
     }
 
@@ -38,8 +37,8 @@ final class OAuthClient
     public function exchangeCode(string $code, string $codeVerifier = ''): TokenPair
     {
         $form = [
-            'code'       => $code,
-            'app_id'     => $this->appId,
+            'code' => $code,
+            'app_id' => $this->appId,
             'grant_type' => 'authorization_code',
         ];
 
@@ -60,8 +59,8 @@ final class OAuthClient
     {
         return $this->request([
             'refresh_token' => $refreshToken,
-            'app_id'        => $this->appId,
-            'grant_type'    => 'refresh_token',
+            'app_id' => $this->appId,
+            'grant_type' => 'refresh_token',
         ], 'refresh token');
     }
 

@@ -62,7 +62,7 @@ class DoctorCommand extends Command
 
     private function checkApp(): void
     {
-        $appId  = (string) config('zalo.apps.default.app_id');
+        $appId = (string) config('zalo.apps.default.app_id');
         $secret = (string) config('zalo.apps.default.app_secret');
 
         $appId !== '' && $secret !== ''
@@ -75,7 +75,7 @@ class DoctorCommand extends Command
 
     private function checkTables(): void
     {
-        $all     = Table::all();
+        $all = Table::all();
         $missing = array_values(array_filter($all, static fn (string $t): bool => ! Schema::hasTable($t)));
 
         if ($missing === []) {

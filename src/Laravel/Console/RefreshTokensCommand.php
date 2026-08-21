@@ -40,10 +40,10 @@ class RefreshTokensCommand extends Command
         }
 
         $rotateBefore = (int) config('zalo.scheduler.rotate_before', 14);
-        $maxFailures  = (int) config('zalo.scheduler.max_failures', 3);
-        $refreshed    = 0;
-        $skipped      = 0;
-        $failed       = 0;
+        $maxFailures = (int) config('zalo.scheduler.max_failures', 3);
+        $refreshed = 0;
+        $skipped = 0;
+        $failed = 0;
 
         foreach ($targets as $oa) {
             /** @var ZaloOa $oa */
@@ -51,8 +51,8 @@ class RefreshTokensCommand extends Command
 
             match ($result) {
                 'refreshed' => $refreshed++,
-                'skipped'   => $skipped++,
-                default     => $failed++,
+                'skipped' => $skipped++,
+                default => $failed++,
             };
         }
 
@@ -69,8 +69,8 @@ class RefreshTokensCommand extends Command
     {
         $slug = $this->argument('oa');
 
-        if ($slug !== null) {
-            $oa = $oas->find((string) $slug);
+        if (is_string($slug) && $slug !== '') {
+            $oa = $oas->find($slug);
 
             if (! $oa instanceof ZaloOa) {
                 $this->components->error("Không tìm thấy OA [{$slug}].");
@@ -109,7 +109,7 @@ class RefreshTokensCommand extends Command
         }
 
         $needsRotation = ($token->daysUntilRotation() ?? 999) <= $rotateBefore;
-        $expiringSoon  = $token->expires_at?->isBefore(
+        $expiringSoon = $token->expires_at?->isBefore(
             now()->addMinutes((int) config('zalo.scheduler.refresh_before', 15))
         ) ?? true;
 
@@ -130,8 +130,9 @@ class RefreshTokensCommand extends Command
             $this->line("  <fg=red>✗</> {$oa->slug} — {$e->getMessage()}");
 
             $oa->refresh();
+            $attempts = $oa->token !== null ? $oa->token->failed_attempts : 0;
 
-            if (($oa->token?->failed_attempts ?? 0) >= $maxFailures) {
+            if ($attempts >= $maxFailures) {
                 $this->disconnect($oa, "refresh thất bại {$maxFailures} lần liên tiếp");
             }
 

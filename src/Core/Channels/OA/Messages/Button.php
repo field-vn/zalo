@@ -42,8 +42,8 @@ final class Button
     public function toPayload(): array
     {
         return [
-            'title'   => $this->title,
-            'type'    => $this->type,
+            'title' => $this->title,
+            'type' => $this->type,
             'payload' => $this->payload,
         ];
     }

@@ -12,7 +12,5 @@ class ZaloOaConnected
 {
     use Dispatchable;
 
-    public function __construct(public readonly ZaloOa $oa)
-    {
-    }
+    public function __construct(public readonly ZaloOa $oa) {}
 }

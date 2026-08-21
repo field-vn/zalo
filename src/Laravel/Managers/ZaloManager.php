@@ -41,8 +41,7 @@ class ZaloManager implements Factory
         protected readonly Container $container,
         protected readonly OaRepository $oas,
         protected readonly BotRepository $bots,
-    ) {
-    }
+    ) {}
 
     public function oa(string|int|null $key = null): OAChannel
     {
@@ -78,10 +77,10 @@ class ZaloManager implements Factory
 
         if (! isset($this->resolved[$cacheKey])) {
             $this->resolved[$cacheKey] = new BotChannel(
-                slug:      $record->slug,
+                slug: $record->slug,
                 transport: $this->transport(),
-                token:     $record->token,
-                baseUrl:   (string) config('zalo.endpoints.bot'),
+                token: $record->token,
+                baseUrl: (string) config('zalo.endpoints.bot'),
             );
         }
 
@@ -89,19 +88,32 @@ class ZaloManager implements Factory
         return $this->resolved[$cacheKey];
     }
 
+    /**
+     * @param  (callable(ZaloOa): bool)|null  $filter
+     * @return Collection<int, OAChannel>
+     */
     public function oas(?callable $filter = null): Collection
     {
-        return $this->oas->active()
-            ->when($filter !== null, fn (Collection $c) => $c->filter($filter))
+        // Không dùng ->when(): nó nuốt mất generic của Collection và khiến
+        // PHPStan không suy ra được kiểu phần tử ở bước ->map() phía sau.
+        $records = $this->oas->active();
+
+        if ($filter !== null) {
+            $records = $records->filter($filter);
+        }
+
+        return $records
             ->map(fn (ZaloOa $oa): OAChannel => $this->oa($oa->slug))
             ->values();
     }
 
+    /** @return Collection<int, ZaloOa> */
     public function availableOas(): Collection
     {
         return $this->oas->active();
     }
 
+    /** @return Collection<int, ZaloBot> */
     public function availableBots(): Collection
     {
         return $this->bots->active();
@@ -113,10 +125,10 @@ class ZaloManager implements Factory
         $app = $this->appConfig($appKey);
 
         return new OAuthClient(
-            transport:  $this->transport(),
-            appId:      (string) $app['app_id'],
-            appSecret:  (string) $app['app_secret'],
-            oauthBase:  (string) config('zalo.endpoints.oauth'),
+            transport: $this->transport(),
+            appId: (string) $app['app_id'],
+            appSecret: (string) $app['app_secret'],
+            oauthBase: (string) config('zalo.endpoints.oauth'),
             consentUrl: (string) config('zalo.endpoints.oauth_consent'),
         );
     }
@@ -124,11 +136,11 @@ class ZaloManager implements Factory
     public function tokenProviderFor(ZaloOa $oa): RefreshingTokenProvider
     {
         return new RefreshingTokenProvider(
-            oaSlug:               $oa->slug,
-            oauth:                $this->oauth($oa->app_key),
-            store:                new EloquentTokenStore($oa),
+            oaSlug: $oa->slug,
+            oauth: $this->oauth($oa->app_key),
+            store: new EloquentTokenStore($oa),
             refreshBeforeMinutes: (int) config('zalo.scheduler.refresh_before', 15),
-            rotateBeforeDays:     (int) config('zalo.scheduler.rotate_before', 14),
+            rotateBeforeDays: (int) config('zalo.scheduler.rotate_before', 14),
         );
     }
 
@@ -165,10 +177,10 @@ class ZaloManager implements Factory
         $this->appConfig($oa->app_key);
 
         return new OAChannel(
-            slug:      $oa->slug,
+            slug: $oa->slug,
             transport: $this->transport(),
-            tokens:    $this->tokenProviderFor($oa),
-            baseUrl:   (string) config('zalo.endpoints.oa'),
+            tokens: $this->tokenProviderFor($oa),
+            baseUrl: (string) config('zalo.endpoints.oa'),
         );
     }
 
@@ -195,7 +207,11 @@ class ZaloManager implements Factory
         return $this->container->make(Transport::class);
     }
 
-    /** Proxy về OA mặc định: Zalo::messages() === Zalo::oa()->messages() */
+    /**
+     * Proxy về OA mặc định: Zalo::messages() === Zalo::oa()->messages()
+     *
+     * @param  array<int, mixed>  $parameters
+     */
     public function __call(string $method, array $parameters): mixed
     {
         return $this->oa()->{$method}(...$parameters);

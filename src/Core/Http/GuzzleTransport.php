@@ -25,9 +25,9 @@ final class GuzzleTransport implements Transport
         float $connectTimeout = 5.0,
     ) {
         $this->client = $client ?? new Client([
-            'timeout'         => $timeout,
+            'timeout' => $timeout,
             'connect_timeout' => $connectTimeout,
-            'http_errors'     => false,
+            'http_errors' => false,
         ]);
     }
 
@@ -39,7 +39,7 @@ final class GuzzleTransport implements Transport
     public function post(string $url, array $payload = [], array $headers = []): Response
     {
         return $this->send('POST', $url, [
-            'json'    => $payload,
+            'json' => $payload,
             'headers' => $headers + ['Content-Type' => 'application/json'],
         ]);
     }
@@ -48,22 +48,22 @@ final class GuzzleTransport implements Transport
     {
         return $this->send('POST', $url, [
             'form_params' => $form,
-            'headers'     => $headers,
+            'headers' => $headers,
         ]);
     }
 
     /** @param array<string, mixed> $options */
     private function send(string $method, string $url, array $options): Response
     {
-        $times     = max(1, (int) ($this->retry['times'] ?? 3));
-        $sleepMs   = (int) ($this->retry['sleep'] ?? 200);
-        $retryOn   = $this->retry['on'] ?? [];
+        $times = max(1, (int) ($this->retry['times'] ?? 3));
+        $sleepMs = (int) ($this->retry['sleep'] ?? 200);
+        $retryOn = $this->retry['on'] ?? [];
         $lastError = null;
 
         for ($attempt = 1; $attempt <= $times; $attempt++) {
             try {
                 /** @var ResponseInterface $psr */
-                $psr      = $this->client->request($method, $url, $options);
+                $psr = $this->client->request($method, $url, $options);
                 $response = $this->toResponse($psr);
 
                 // Chỉ retry lỗi tạm thời. Lỗi nghiệp vụ (error != 0) trả về ngay

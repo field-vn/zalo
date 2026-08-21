@@ -10,12 +10,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property int                  $oa_id
- * @property string               $access_token
- * @property string               $refresh_token
+ * @property int $oa_id
+ * @property string $access_token
+ * @property string $refresh_token
  * @property CarbonInterface|null $expires_at
  * @property CarbonInterface|null $refresh_expires_at
- * @property int                  $failed_attempts
+ * @property CarbonInterface|null $last_refreshed_at
+ * @property string|null $last_error
+ * @property int $failed_attempts
  */
 class ZaloOaToken extends Model
 {
@@ -23,12 +25,12 @@ class ZaloOaToken extends Model
 
     protected $casts = [
         // Dựa trên APP_KEY — đổi APP_KEY là mất toàn bộ token.
-        'access_token'       => 'encrypted',
-        'refresh_token'      => 'encrypted',
-        'expires_at'         => 'datetime',
+        'access_token' => 'encrypted',
+        'refresh_token' => 'encrypted',
+        'expires_at' => 'datetime',
         'refresh_expires_at' => 'datetime',
-        'last_refreshed_at'  => 'datetime',
-        'failed_attempts'    => 'integer',
+        'last_refreshed_at' => 'datetime',
+        'failed_attempts' => 'integer',
     ];
 
     public function getTable(): string
@@ -36,6 +38,7 @@ class ZaloOaToken extends Model
         return Table::name(Table::OA_TOKENS);
     }
 
+    /** @return BelongsTo<ZaloOa, $this> */
     public function oa(): BelongsTo
     {
         return $this->belongsTo(ZaloOa::class, 'oa_id');

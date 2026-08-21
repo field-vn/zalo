@@ -10,6 +10,4 @@ use RuntimeException;
  * Gốc của mọi exception trong package.
  * Người dùng bắt class này là bắt được tất cả.
  */
-class ZaloException extends RuntimeException
-{
-}
+class ZaloException extends RuntimeException {}

@@ -27,12 +27,12 @@ class ZaloServiceProvider extends ServiceProvider
 
         // Bind theo interface — người dùng typehint Contracts, không phải class cụ thể.
         $this->app->singleton(Transport::class, function (): Transport {
-            /** @var array{timeout:int, connect_timeout:int, retry:array} $http */
+            /** @var array{timeout:int, connect_timeout:int, retry:array{times:int, sleep:int, on:list<int>}} $http */
             $http = config('zalo.http');
 
             return new GuzzleTransport(
-                retry:          $http['retry'],
-                timeout:        (float) $http['timeout'],
+                retry: $http['retry'],
+                timeout: (float) $http['timeout'],
                 connectTimeout: (float) $http['connect_timeout'],
             );
         });

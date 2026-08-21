@@ -20,25 +20,24 @@ final class TokenPair
         public readonly string $refreshToken,
         public readonly DateTimeImmutable $expiresAt,
         public readonly ?DateTimeImmutable $refreshExpiresAt = null,
-    ) {
-    }
+    ) {}
 
     /**
      * Dựng từ response của oauth.zaloapp.com.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public static function fromResponse(array $data, ?DateTimeImmutable $now = null): self
     {
-        $now = $now ?? new DateTimeImmutable();
+        $now = $now ?? new DateTimeImmutable;
 
         // Zalo trả expires_in dạng chuỗi giây.
         $expiresIn = (int) ($data['expires_in'] ?? 3600);
 
         return new self(
-            accessToken:  (string) ($data['access_token'] ?? ''),
+            accessToken: (string) ($data['access_token'] ?? ''),
             refreshToken: (string) ($data['refresh_token'] ?? ''),
-            expiresAt:    $now->modify("+{$expiresIn} seconds"),
+            expiresAt: $now->modify("+{$expiresIn} seconds"),
             // Zalo không trả hạn của refresh_token; theo tài liệu là ~3 tháng.
             refreshExpiresAt: $now->modify('+90 days'),
         );
@@ -46,13 +45,13 @@ final class TokenPair
 
     public function isExpired(?DateTimeImmutable $now = null): bool
     {
-        return ($now ?? new DateTimeImmutable()) >= $this->expiresAt;
+        return ($now ?? new DateTimeImmutable) >= $this->expiresAt;
     }
 
     /** Sắp hết hạn — nên refresh trước khi dùng. */
     public function expiresWithin(int $minutes, ?DateTimeImmutable $now = null): bool
     {
-        $now = $now ?? new DateTimeImmutable();
+        $now = $now ?? new DateTimeImmutable;
 
         return $now->modify("+{$minutes} minutes") >= $this->expiresAt;
     }
@@ -67,7 +66,7 @@ final class TokenPair
             return false;
         }
 
-        $now = $now ?? new DateTimeImmutable();
+        $now = $now ?? new DateTimeImmutable;
 
         return $now->modify("+{$days} days") >= $this->refreshExpiresAt;
     }
@@ -75,6 +74,6 @@ final class TokenPair
     public function refreshExpired(?DateTimeImmutable $now = null): bool
     {
         return $this->refreshExpiresAt !== null
-            && ($now ?? new DateTimeImmutable()) >= $this->refreshExpiresAt;
+            && ($now ?? new DateTimeImmutable) >= $this->refreshExpiresAt;
     }
 }

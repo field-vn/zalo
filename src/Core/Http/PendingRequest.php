@@ -19,8 +19,7 @@ final class PendingRequest
         private readonly Transport $transport,
         private readonly string $baseUrl,
         private $headers,
-    ) {
-    }
+    ) {}
 
     /** @param array<string, mixed> $query */
     public function get(string $path, array $query = []): Response

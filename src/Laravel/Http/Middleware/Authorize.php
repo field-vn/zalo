@@ -38,7 +38,7 @@ class Authorize
             return $next($request);
         }
 
-        $user     = (string) ($cfg['user'] ?? '');
+        $user = (string) ($cfg['user'] ?? '');
         $password = (string) ($cfg['password'] ?? '');
 
         // 3. Chưa cấu hình credential → chỉ chạy được ở local.

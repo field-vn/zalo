@@ -30,8 +30,7 @@ final class OAChannel implements Channel
         private readonly Transport $transport,
         private readonly RefreshingTokenProvider $tokens,
         private readonly string $baseUrl = 'https://openapi.zalo.me',
-    ) {
-    }
+    ) {}
 
     public function key(): string
     {

@@ -123,8 +123,23 @@ class StatusCommand extends Command
             return '<fg=red>MẤT KẾT NỐI · phải authorize lại</>';
         }
 
-        $expires = $oa->token->expires_at?->diffForHumans(null, true) ?? '?';
-        $rotate  = $oa->token->daysUntilRotation();
+        // Tự format thay vì dùng diffForHumans(): chữ ký của nó khác nhau giữa
+        // Carbon 2 (Laravel 10) và Carbon 3 (Laravel 11+), package phải chạy
+        // được trên cả hai.
+        $expiresAt = $oa->token->expires_at;
+
+        if ($expiresAt === null) {
+            $expires = '?';
+        } else {
+            $minutes = (int) now()->diffInMinutes($expiresAt, false);
+            $expires = match (true) {
+                $minutes <= 0 => 'đã hết hạn',
+                $minutes < 60 => $minutes.' phút',
+                default => intdiv($minutes, 60).' giờ',
+            };
+        }
+
+        $rotate = $oa->token->daysUntilRotation();
 
         return sprintf(
             'token còn %-12s xoay sau %s ngày',

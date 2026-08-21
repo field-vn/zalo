@@ -11,7 +11,5 @@ abstract class Resource
 {
     use Macroable;
 
-    public function __construct(protected readonly PendingRequest $request)
-    {
-    }
+    public function __construct(protected readonly PendingRequest $request) {}
 }

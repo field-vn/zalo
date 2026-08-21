@@ -10,12 +10,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * @property int         $id
- * @property string      $name
- * @property string      $slug
- * @property string      $token
+ * @property int $id
+ * @property string $name
+ * @property string $slug
+ * @property string $token
  * @property string|null $username
- * @property bool        $is_active
+ * @property bool $is_active
  */
 class ZaloBot extends Model
 {
@@ -26,8 +26,8 @@ class ZaloBot extends Model
     protected $hidden = ['token'];
 
     protected $casts = [
-        'token'     => 'encrypted',
-        'meta'      => 'array',
+        'token' => 'encrypted',
+        'meta' => 'array',
         'is_active' => 'boolean',
     ];
 

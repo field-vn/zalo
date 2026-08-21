@@ -50,7 +50,7 @@ final class TextMessage implements Message
             ));
         }
 
-        $clone       = clone $this;
+        $clone = clone $this;
         $clone->text = $text;
 
         return $clone;
@@ -58,7 +58,7 @@ final class TextMessage implements Message
 
     public function button(Button $button): self
     {
-        $clone            = clone $this;
+        $clone = clone $this;
         $clone->buttons[] = $button;
 
         return $clone;
@@ -67,8 +67,8 @@ final class TextMessage implements Message
     /** @param list<Button> $buttons */
     public function buttons(array $buttons): self
     {
-        $clone          = clone $this;
-        $clone->buttons = array_values($buttons);
+        $clone = clone $this;
+        $clone->buttons = $buttons;
 
         return $clone;
     }
@@ -83,11 +83,11 @@ final class TextMessage implements Message
 
         if ($this->buttons !== []) {
             $message['attachment'] = [
-                'type'    => 'template',
+                'type' => 'template',
                 'payload' => [
                     'template_type' => 'button',
-                    'text'          => $this->text,
-                    'buttons'       => array_map(
+                    'text' => $this->text,
+                    'buttons' => array_map(
                         static fn (Button $b): array => $b->toPayload(),
                         $this->buttons,
                     ),
@@ -97,7 +97,7 @@ final class TextMessage implements Message
 
         return [
             'recipient' => ['user_id' => $this->userId],
-            'message'   => $message,
+            'message' => $message,
         ];
     }
 }

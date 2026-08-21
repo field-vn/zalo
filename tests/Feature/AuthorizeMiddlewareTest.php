@@ -5,11 +5,21 @@ declare(strict_types=1);
 use FieldVn\Zalo\Laravel\Http\Middleware\Authorize;
 use FieldVn\Zalo\Laravel\Managers\ZaloManager;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-function runMiddleware(Request $request): mixed
+/**
+ * $next PHẢI trả về Response thật — trong pipeline của Laravel không bao giờ
+ * có chuyện middleware nhận lại string. Trả string chỉ làm test dễ viết hơn
+ * nhưng lại kiểm tra sai thứ đang chạy trên production.
+ */
+function runMiddleware(Request $request): Response
 {
-    return (new Authorize())->handle($request, fn (): string => 'passed');
+    /** @var Response */
+    return (new Authorize)->handle(
+        $request,
+        static fn (): Response => new Response('passed'),
+    );
 }
 
 function basicRequest(string $user = '', string $password = ''): Request
@@ -24,16 +34,20 @@ function basicRequest(string $user = '', string $password = ''): Request
     return $request;
 }
 
-it('cho qua khi basic auth đúng', function (): void {
+function withBasicAuth(): void
+{
     config()->set('zalo.ui.user', 'admin');
     config()->set('zalo.ui.password', 'secret');
+}
 
-    expect(runMiddleware(basicRequest('admin', 'secret')))->toBe('passed');
+it('cho qua khi basic auth đúng', function (): void {
+    withBasicAuth();
+
+    expect(runMiddleware(basicRequest('admin', 'secret'))->getContent())->toBe('passed');
 });
 
 it('trả 401 kèm WWW-Authenticate khi sai mật khẩu', function (): void {
-    config()->set('zalo.ui.user', 'admin');
-    config()->set('zalo.ui.password', 'secret');
+    withBasicAuth();
 
     $response = runMiddleware(basicRequest('admin', 'sai'));
 
@@ -42,8 +56,7 @@ it('trả 401 kèm WWW-Authenticate khi sai mật khẩu', function (): void {
 });
 
 it('trả 401 khi sai username', function (): void {
-    config()->set('zalo.ui.user', 'admin');
-    config()->set('zalo.ui.password', 'secret');
+    withBasicAuth();
 
     expect(runMiddleware(basicRequest('khac', 'secret'))->getStatusCode())->toBe(401);
 });
@@ -53,8 +66,7 @@ it('FAIL-CLOSED: chặn ngoài local khi chưa cấu hình credential', function
     config()->set('zalo.ui.password', null);
     app()->detectEnvironment(fn (): string => 'production');
 
-    expect(fn () => runMiddleware(basicRequest()))
-        ->toThrow(HttpException::class);
+    expect(fn () => runMiddleware(basicRequest()))->toThrow(HttpException::class);
 });
 
 it('cho qua ở local khi chưa cấu hình credential', function (): void {
@@ -62,21 +74,19 @@ it('cho qua ở local khi chưa cấu hình credential', function (): void {
     config()->set('zalo.ui.password', null);
     app()->detectEnvironment(fn (): string => 'local');
 
-    expect(runMiddleware(basicRequest()))->toBe('passed');
+    expect(runMiddleware(basicRequest())->getContent())->toBe('passed');
 });
 
 it('gate của ứng dụng thắng basic auth', function (): void {
-    config()->set('zalo.ui.user', 'admin');
-    config()->set('zalo.ui.password', 'secret');
+    withBasicAuth();
     ZaloManager::auth(fn (): bool => true);
 
     // Không gửi basic auth mà vẫn qua được, vì gate đã cho phép.
-    expect(runMiddleware(basicRequest()))->toBe('passed');
+    expect(runMiddleware(basicRequest())->getContent())->toBe('passed');
 });
 
 it('gate từ chối thì chặn kể cả basic auth đúng', function (): void {
-    config()->set('zalo.ui.user', 'admin');
-    config()->set('zalo.ui.password', 'secret');
+    withBasicAuth();
     ZaloManager::auth(fn (): bool => false);
 
     expect(fn () => runMiddleware(basicRequest('admin', 'secret')))
@@ -85,8 +95,7 @@ it('gate từ chối thì chặn kể cả basic auth đúng', function (): void
 
 it('chặn IP ngoài allowlist TRƯỚC khi xét auth', function (): void {
     config()->set('zalo.ui.allowed_ips', ['203.0.113.0/24']);
-    config()->set('zalo.ui.user', 'admin');
-    config()->set('zalo.ui.password', 'secret');
+    withBasicAuth();
 
     $request = basicRequest('admin', 'secret');
     $request->server->set('REMOTE_ADDR', '198.51.100.7');
@@ -96,11 +105,10 @@ it('chặn IP ngoài allowlist TRƯỚC khi xét auth', function (): void {
 
 it('cho qua IP nằm trong allowlist', function (): void {
     config()->set('zalo.ui.allowed_ips', ['203.0.113.0/24']);
-    config()->set('zalo.ui.user', 'admin');
-    config()->set('zalo.ui.password', 'secret');
+    withBasicAuth();
 
     $request = basicRequest('admin', 'secret');
     $request->server->set('REMOTE_ADDR', '203.0.113.7');
 
-    expect(runMiddleware($request))->toBe('passed');
+    expect(runMiddleware($request)->getContent())->toBe('passed');
 });

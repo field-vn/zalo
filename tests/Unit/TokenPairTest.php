@@ -6,7 +6,7 @@ use FieldVn\Zalo\Core\Auth\TokenPair;
 
 function pair(string $expires = '+1 hour', ?string $refreshExpires = '+90 days'): TokenPair
 {
-    $now = new DateTimeImmutable();
+    $now = new DateTimeImmutable;
 
     return new TokenPair(
         accessToken: 'access',
@@ -46,9 +46,9 @@ it('tính hạn từ expires_in của response Zalo', function (): void {
     $now = new DateTimeImmutable('2026-01-01 00:00:00');
 
     $tokens = TokenPair::fromResponse([
-        'access_token'  => 'a',
+        'access_token' => 'a',
         'refresh_token' => 'r',
-        'expires_in'    => '3600',   // Zalo trả về dạng chuỗi
+        'expires_in' => '3600',   // Zalo trả về dạng chuỗi
     ], $now);
 
     expect($tokens->expiresAt->format('H:i'))->toBe('01:00')
