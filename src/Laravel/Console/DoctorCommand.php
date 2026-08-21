@@ -8,6 +8,7 @@ use FieldVn\Zalo\Contracts\BotRepository;
 use FieldVn\Zalo\Contracts\OaRepository;
 use FieldVn\Zalo\Laravel\Managers\ZaloManager;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
+use FieldVn\Zalo\Laravel\Support\OaPresenter;
 use FieldVn\Zalo\Support\Table;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
@@ -36,6 +37,7 @@ class DoctorCommand extends Command
         $this->newLine();
 
         $this->checkApp();
+        $this->checkRedirectUri();
         $this->checkTables();
         $this->checkEncryption($oas);
         $this->checkUi();
@@ -73,6 +75,22 @@ class DoctorCommand extends Command
                 'Thiếu ZALO_APP_ID hoặc ZALO_APP_SECRET',
                 'Tạo app tại https://developers.zalo.me/apps rồi thêm vào .env',
             );
+    }
+
+    /** Lỗi -14003 của Zalo không nói lệch ở đâu, nên phải tự in ra để đối chiếu. */
+    private function checkRedirectUri(): void
+    {
+        $uri = OaPresenter::redirectUri();
+
+        $this->info2("Redirect URI đang dùng: {$uri}");
+        $this->info2('Giá trị này phải khớp CHÍNH XÁC với Callback URL khai trong Zalo Developers.');
+
+        if (! str_starts_with($uri, 'https://')) {
+            $this->warn2(
+                'Redirect URI không phải HTTPS',
+                'Zalo thường từ chối (-14003). Dùng domain thật có HTTPS, hoặc tunnel như ngrok/cloudflared.',
+            );
+        }
     }
 
     private function checkTables(): void

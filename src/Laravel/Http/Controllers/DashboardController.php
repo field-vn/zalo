@@ -21,6 +21,8 @@ class DashboardController
             'appId' => OaPresenter::maskedAppId(),
             'schedulerEnabled' => (bool) config('zalo.scheduler.enabled', true),
             'webhookUrl' => url((string) config('zalo.webhook.path', 'zalo/webhook')),
+            'redirectUri' => OaPresenter::redirectUri(),
+            'isHttps' => str_starts_with(OaPresenter::redirectUri(), 'https://'),
             'webhookSecretSet' => (string) config('zalo.apps.default.webhook_secret', '') !== '',
             'warnings' => OaPresenter::warnings($records),
             'statusBadge' => OaPresenter::statusBadge(...),

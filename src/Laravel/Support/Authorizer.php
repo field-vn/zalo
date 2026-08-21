@@ -30,15 +30,16 @@ final class Authorizer
         );
     }
 
+    /**
+     * Zalo yêu cầu redirect_uri tuyệt đối và khớp CHÍNH XÁC giá trị đã khai
+     * trong Zalo Developers.
+     *
+     * Uỷ quyền cho OaPresenter để UI và luồng gửi đi dùng CÙNG một nguồn —
+     * nếu hai nơi tính khác nhau, UI sẽ hiện một đằng mà gửi một nẻo.
+     */
     public function redirectUri(ZaloOa $oa): string
     {
-        /** @var array<string, string>|null $app */
-        $app = config('zalo.apps.'.$oa->app_key);
-        $path = (string) ($app['redirect'] ?? '/zalo/oauth/callback');
-
-        // Zalo yêu cầu redirect_uri tuyệt đối và phải khớp chính xác giá trị
-        // đã khai trong Zalo Developers dashboard.
-        return str_starts_with($path, 'http') ? $path : url($path);
+        return OaPresenter::redirectUri($oa->app_key);
     }
 
     /**

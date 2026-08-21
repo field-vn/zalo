@@ -45,10 +45,36 @@
         </div>
     </div>
 
-    <h2>Webhook</h2>
+    <h2>URL phải khai trong Zalo Developers</h2>
+
     <div class="zl-card">
         <p class="zl-hint" style="margin-top:0">
-            Dán URL này vào phần cài đặt webhook trong Zalo Developers.
+            <strong>Redirect URI</strong> — App → Official Account → Callback URL.
+            Phải khớp <strong>CHÍNH XÁC</strong>, thừa/thiếu dấu <code>/</code> cuối cũng bị từ chối
+            (<code>error_code -14003</code>).
+        </p>
+        <div class="zl-copy">
+            <input type="text" readonly value="{{ $redirectUri }}" id="zl-redirect-uri" onclick="this.select()">
+            <button type="button" class="zl-btn" onclick="
+                document.getElementById('zl-redirect-uri').select();
+                document.execCommand('copy');
+                this.textContent='Đã copy';
+                setTimeout(()=>this.textContent='Copy',1500);
+            ">Copy</button>
+        </div>
+
+        @unless ($isHttps)
+            <div class="zl-alert zl-alert-warn" style="margin:14px 0 0">
+                URL đang là <strong>HTTP</strong>. Zalo thường từ chối redirect URI không phải HTTPS
+                và domain chưa xác minh — đây là nguyên nhân phổ biến nhất của lỗi
+                <code>-14003 Invalid redirect uri</code>.
+            </div>
+        @endunless
+    </div>
+
+    <div class="zl-card">
+        <p class="zl-hint" style="margin-top:0">
+            <strong>Webhook URL</strong> — App → Official Account → Webhook.
         </p>
         <div class="zl-copy">
             <input type="text" readonly value="{{ $webhookUrl }}" id="zl-webhook-url" onclick="this.select()">

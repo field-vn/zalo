@@ -28,6 +28,21 @@ final class OaPresenter
             : $appId;
     }
 
+    /**
+     * Redirect URI package thực sự gửi cho Zalo.
+     *
+     * Hiện ra để đối chiếu với giá trị khai trong Zalo Developers — lệch một
+     * ký tự là Zalo trả -14003 mà không nói lệch ở đâu.
+     */
+    public static function redirectUri(string $appKey = 'default'): string
+    {
+        /** @var array<string, string>|null $app */
+        $app = config('zalo.apps.'.$appKey);
+        $path = (string) ($app['redirect'] ?? '/zalo/oauth/callback');
+
+        return str_starts_with($path, 'http') ? $path : url($path);
+    }
+
     /** HTML badge — nội dung do package sinh, không có dữ liệu người dùng. */
     public static function statusBadge(ZaloOa $oa): string
     {
