@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FieldVn\Zalo\Laravel\Console;
 
+use FieldVn\Zalo\Contracts\BotRepository;
 use FieldVn\Zalo\Contracts\OaRepository;
 use FieldVn\Zalo\Laravel\Managers\ZaloManager;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
@@ -28,7 +29,7 @@ class DoctorCommand extends Command
 
     private int $warnings = 0;
 
-    public function handle(OaRepository $oas): int
+    public function handle(OaRepository $oas, BotRepository $bots): int
     {
         $this->newLine();
         $this->line('  <fg=cyan;options=bold>Zalo Doctor</>');
@@ -40,6 +41,7 @@ class DoctorCommand extends Command
         $this->checkUi();
         $this->checkScheduler();
         $this->checkOas($oas);
+        $this->checkBots($bots);
 
         $this->newLine();
 
@@ -207,6 +209,24 @@ class DoctorCommand extends Command
                 $this->ok("OA `{$oa->slug}` kết nối bình thường");
             }
         }
+    }
+
+    private function checkBots(BotRepository $bots): void
+    {
+        $all = $bots->all();
+
+        if ($all->isEmpty()) {
+            // Không có bot không phải lỗi — nhiều dự án chỉ dùng OA.
+            return;
+        }
+
+        foreach ($all as $bot) {
+            $bot->is_active
+                ? $this->ok("Bot `{$bot->slug}` đang bật")
+                : $this->warn2("Bot `{$bot->slug}` đã tắt");
+        }
+
+        $this->info2('Kiểm tra token bot: php artisan zalo:bot:test <slug>');
     }
 
     // ── helper hiển thị ──────────────────────────────────────────────────

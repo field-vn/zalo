@@ -132,6 +132,23 @@ Zalo::oa('cskh')->tags()->assign($userId, 'khach-vip');
 Zalo::bot('support')->messages()->send($chatId, 'pong');
 ```
 
+### Zalo Bot
+
+Đơn giản hơn OA nhiều: token tĩnh, không OAuth, không refresh, không dính Zalo App. Lấy token ở [bot.zaloplatforms.com](https://bot.zaloplatforms.com).
+
+```bash
+php artisan zalo:bot:add
+```
+
+Lệnh này gọi `getMe` ngay để bắt lỗi copy nhầm token — nếu token hỏng thì bản ghi vừa tạo cũng bị xoá, không để lại rác.
+
+```php
+Zalo::bot('support')->messages()->send($chatId, 'pong');
+Zalo::bot('support')->messages()->sendPhoto($chatId, 'https://…/anh.png', 'Chú thích');
+Zalo::bot('support')->updates()->poll();          // long polling
+Zalo::bot('support')->updates()->setWebhook($url);
+```
+
 ### Nhiều OA
 
 ```php
@@ -168,6 +185,9 @@ Zalo::oa('cskh')->request()->get('/v3.0/oa/duong-dan-moi', ['param' => 'x']);
 | `zalo:oa:list` | Liệt kê OA và trạng thái token |
 | `zalo:oa:test {oa}` | Gọi thử API, xác nhận kết nối còn sống |
 | `zalo:authorize {oa}` | Cấp quyền, lấy token lần đầu |
+| `zalo:bot:add` | Thêm Bot (tự kiểm tra token ngay) |
+| `zalo:bot:list` | Liệt kê Bot |
+| `zalo:bot:test {bot}` | Kiểm tra token bot còn dùng được |
 | `zalo:token:refresh` | `{oa?}` · `--all` · `--force` |
 
 ## Nhận tin nhắn (Webhook)

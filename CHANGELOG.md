@@ -14,7 +14,8 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
   callback không truy cập được từ Internet)
 - UI bảo vệ bằng basic auth + IP allowlist, fail-closed
 - Commands: `zalo`, `zalo:install`, `zalo:doctor`, `zalo:oa:add`,
-  `zalo:oa:list`, `zalo:oa:test`, `zalo:authorize`, `zalo:token:refresh`
+  `zalo:oa:list`, `zalo:oa:test`, `zalo:authorize`, `zalo:token:refresh`,
+  `zalo:bot:add`, `zalo:bot:list`, `zalo:bot:test`
 - Webhook: xác thực `X-ZEvent-Signature`, xử lý qua queue, chống replay
 - Events: `ZaloWebhookReceived`, `ZaloMessageReceived`, `ZaloFollowerAdded`,
   `ZaloFollowerRemoved`, `ZaloOaConnected`, `ZaloOaDisconnected`

@@ -10,6 +10,9 @@ use FieldVn\Zalo\Contracts\OaRepository;
 use FieldVn\Zalo\Contracts\Transport;
 use FieldVn\Zalo\Core\Http\GuzzleTransport;
 use FieldVn\Zalo\Laravel\Console\AuthorizeCommand;
+use FieldVn\Zalo\Laravel\Console\BotAddCommand;
+use FieldVn\Zalo\Laravel\Console\BotListCommand;
+use FieldVn\Zalo\Laravel\Console\BotTestCommand;
 use FieldVn\Zalo\Laravel\Console\DoctorCommand;
 use FieldVn\Zalo\Laravel\Console\InstallCommand;
 use FieldVn\Zalo\Laravel\Console\OaAddCommand;
@@ -80,6 +83,9 @@ class ZaloServiceProvider extends ServiceProvider
                 OaAddCommand::class,
                 OaListCommand::class,
                 OaTestCommand::class,
+                BotAddCommand::class,
+                BotListCommand::class,
+                BotTestCommand::class,
             ]);
         }
     }
