@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace FieldVn\Zalo\Laravel\Facades;
 
 use Closure;
+use FieldVn\Zalo\Contracts\BotRepository;
 use FieldVn\Zalo\Contracts\Factory;
+use FieldVn\Zalo\Contracts\OaRepository;
 use FieldVn\Zalo\Core\Auth\OAuthClient;
 use FieldVn\Zalo\Core\Auth\RefreshingTokenProvider;
 use FieldVn\Zalo\Core\Channels\Bot\BotChannel;
@@ -15,6 +17,8 @@ use FieldVn\Zalo\Core\Channels\OA\Resources\TagResource;
 use FieldVn\Zalo\Core\Channels\OA\Resources\UserResource;
 use FieldVn\Zalo\Laravel\Managers\ZaloManager;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
+use FieldVn\Zalo\Laravel\Testing\RecordedRequest;
+use FieldVn\Zalo\Laravel\Testing\ZaloFake;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Facade;
@@ -37,13 +41,46 @@ use Illuminate\Support\Facades\Facade;
  * @method static UserResource users()
  * @method static TagResource tags()
  *
+ * Chỉ có sau khi gọi Zalo::fake():
+ * @method static void assertSent(?callable $callback = null)
+ * @method static void assertNotSent(callable $callback)
+ * @method static void assertNothingSent()
+ * @method static void assertSentCount(int $expected)
+ * @method static void assertSentTo(string $userId, ?string $text = null)
+ * @method static void assertNotSentTo(string $userId)
+ * @method static void assertSentVia(string $slug)
+ * @method static Collection<int,RecordedRequest> sent()
+ *
  * @see ZaloManager
+ * @see ZaloFake
  */
 class Zalo extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
         return Factory::class;
+    }
+
+    /**
+     * Chặn mọi lời gọi tới Zalo trong test và cho phép assert những gì đã gửi.
+     *
+     *     Zalo::fake();
+     *     $this->post('/don-hang', [...]);
+     *     Zalo::assertSentTo('user-1', 'Đơn hàng đã xác nhận');
+     *
+     * Chỉ thay tầng mạng — message builder và resource vẫn chạy code thật,
+     * nên test bắt được cả lỗi ở những tầng đó.
+     */
+    public static function fake(): ZaloFake
+    {
+        $fake = new ZaloFake(
+            app()->bound(OaRepository::class) ? app(OaRepository::class) : null,
+            app()->bound(BotRepository::class) ? app(BotRepository::class) : null,
+        );
+
+        static::swap($fake);
+
+        return $fake;
     }
 
     /**

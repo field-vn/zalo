@@ -79,21 +79,24 @@ final class TextMessage implements Message
             throw new InvalidArgumentException('Chưa đặt nội dung — gọi ->text() trước khi gửi.');
         }
 
-        $message = ['text' => $this->text];
-
-        if ($this->buttons !== []) {
-            $message['attachment'] = [
-                'type' => 'template',
-                'payload' => [
-                    'template_type' => 'button',
-                    'text' => $this->text,
-                    'buttons' => array_map(
-                        static fn (Button $b): array => $b->toPayload(),
-                        $this->buttons,
-                    ),
+        // Có nút thì Zalo dùng template attachment, và nội dung nằm TRONG
+        // payload của template. Không gửi kèm message.text ở ngoài: text sẽ
+        // bị lặp ở hai chỗ, và Zalo không mô tả dạng payload lai như vậy.
+        $message = $this->buttons === []
+            ? ['text' => $this->text]
+            : [
+                'attachment' => [
+                    'type' => 'template',
+                    'payload' => [
+                        'template_type' => 'button',
+                        'text' => $this->text,
+                        'buttons' => array_map(
+                            static fn (Button $b): array => $b->toPayload(),
+                            $this->buttons,
+                        ),
+                    ],
                 ],
             ];
-        }
 
         return [
             'recipient' => ['user_id' => $this->userId],

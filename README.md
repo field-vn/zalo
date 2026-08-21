@@ -243,7 +243,46 @@ $this->app->bind(FieldVn\Zalo\Contracts\OaRepository::class, TenantOaRepository:
 
 Token lưu trong DB được mã hoá bằng `APP_KEY`. **Đổi `APP_KEY` là mất toàn bộ token**, phải cấp quyền lại cho mọi OA.
 
-## Testing
+## Testing dự án của bạn
+
+`Zalo::fake()` chặn mọi lời gọi tới Zalo và cho phép assert những gì đã gửi:
+
+```php
+use FieldVn\Zalo\Laravel\Facades\Zalo;
+
+it('gửi xác nhận khi đặt hàng', function () {
+    Zalo::fake();
+
+    $this->post('/don-hang', ['san_pham' => 1]);
+
+    Zalo::assertSentTo('user-1', 'Đơn hàng đã được xác nhận');
+});
+```
+
+**Không cần OA trong DB, không cần token, không cần giả lập OAuth.**
+
+| Assertion | Việc |
+|---|---|
+| `assertSentTo($userId, $text?)` | Đã gửi tin nhắn tới người này |
+| `assertNotSentTo($userId)` | Chưa gửi cho người này |
+| `assertSentVia($slug)` | Đã gửi qua đúng OA đó |
+| `assertSent($callback)` | Điều kiện tuỳ ý |
+| `assertNotSent($callback)` | |
+| `assertNothingSent()` | |
+| `assertSentCount($n)` | |
+| `sent()` | Collection các request đã ghi |
+
+Đặt response giả khi cần:
+
+```php
+Zalo::fake()->push(['error' => -216, 'message' => 'Token hết hạn']);
+
+// code của bạn phải xử lý được ApiException
+```
+
+`fake()` chỉ thay **tầng mạng** — message builder, resource và validate payload vẫn chạy code thật. Nghĩa là nếu bạn dựng tin nhắn sai (quá 2000 ký tự, nút không phải HTTPS), test vẫn bắt được; khác hẳn với việc mock cả facade rồi test xanh trong khi production hỏng.
+
+## Phát triển package này
 
 ```bash
 composer test

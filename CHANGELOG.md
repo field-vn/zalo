@@ -18,4 +18,5 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 - Webhook: xác thực `X-ZEvent-Signature`, xử lý qua queue, chống replay
 - Events: `ZaloWebhookReceived`, `ZaloMessageReceived`, `ZaloFollowerAdded`,
   `ZaloFollowerRemoved`, `ZaloOaConnected`, `ZaloOaDisconnected`
+- `Zalo::fake()` cho test của dự án — không cần OA trong DB hay token
 - Prefix bảng cấu hình được qua `ZALO_TABLE_PREFIX` (mặc định `zl_`)
