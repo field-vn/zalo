@@ -78,6 +78,13 @@ it('lọc OA theo tag để phân phối có chủ đích', function (): void {
         ->and($channels->first()->key())->toBe('cskh');
 });
 
+it('OA mới luôn có app_key mặc định', function (): void {
+    // Default của migration là default của DB — instance vừa create() xong vẫn
+    // mang null nếu model không tự khai. Authorizer đọc app_key ngay sau khi
+    // tạo nên thiếu cái này là vỡ ngay ở bước cấp quyền đầu tiên.
+    expect(makeOa()->app_key)->toBe('default');
+});
+
 it('chỉ liệt kê OA đang active', function (): void {
     makeOa(['slug' => 'a', 'oa_id' => '1']);
     makeOa(['slug' => 'b', 'oa_id' => '2', 'is_active' => false]);

@@ -25,6 +25,10 @@ class ZaloBot extends Model
 
     protected $hidden = ['token'];
 
+    protected $attributes = [
+        'is_active' => true,
+    ];
+
     protected $casts = [
         'token' => 'encrypted',
         'meta' => 'array',

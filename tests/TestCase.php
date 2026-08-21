@@ -50,6 +50,10 @@ abstract class TestCase extends Orchestra
             'prefix' => '',
         ]);
 
+        // encrypted cast của token và EncryptCookies trong middleware `web`
+        // đều cần APP_KEY — testbench không tự set.
+        $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
+
         $app['config']->set('zalo.apps.default.app_id', 'test-app-id');
         $app['config']->set('zalo.apps.default.app_secret', 'test-app-secret');
     }

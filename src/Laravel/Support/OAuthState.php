@@ -41,8 +41,8 @@ final class OAuthState
             return null;
         }
 
-        $key   = self::PREFIX.$state;
-        $oaId  = Cache::get($key);
+        $key = self::PREFIX.$state;
+        $oaId = Cache::get($key);
 
         // Dùng một lần: xoá ngay để không replay được.
         Cache::forget($key);

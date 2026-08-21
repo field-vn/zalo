@@ -27,6 +27,18 @@ class ZaloOa extends Model
 
     protected $guarded = [];
 
+    /**
+     * Default ở tầng model, không chỉ ở migration.
+     *
+     * Migration có `default('default')` nhưng đó là default của DB — instance
+     * vừa `create()` xong vẫn mang null cho tới khi refresh từ DB. Bất kỳ code
+     * nào đọc `$oa->app_key` ngay sau khi tạo (Authorizer, ZaloManager) sẽ vỡ.
+     */
+    protected $attributes = [
+        'app_key' => 'default',
+        'is_active' => true,
+    ];
+
     protected $casts = [
         'tags' => 'array',
         'meta' => 'array',

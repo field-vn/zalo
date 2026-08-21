@@ -19,9 +19,7 @@ use FieldVn\Zalo\Laravel\Stores\EloquentTokenStore;
  */
 final class Authorizer
 {
-    public function __construct(private readonly ZaloManager $zalo)
-    {
-    }
+    public function __construct(private readonly ZaloManager $zalo) {}
 
     /** URL để admin OA bấm vào và cấp quyền. */
     public function consentUrl(ZaloOa $oa): string
@@ -35,7 +33,7 @@ final class Authorizer
     public function redirectUri(ZaloOa $oa): string
     {
         /** @var array<string, string>|null $app */
-        $app  = config('zalo.apps.'.$oa->app_key);
+        $app = config('zalo.apps.'.$oa->app_key);
         $path = (string) ($app['redirect'] ?? '/zalo/oauth/callback');
 
         // Zalo yêu cầu redirect_uri tuyệt đối và phải khớp chính xác giá trị
@@ -89,11 +87,11 @@ final class Authorizer
         $data = (array) $info->payload();
 
         $oa->forceFill(array_filter([
-            'name'         => $data['name'] ?? null,
-            'avatar_url'   => $data['avatar'] ?? null,
-            'description'  => $data['description'] ?? null,
+            'name' => $data['name'] ?? null,
+            'avatar_url' => $data['avatar'] ?? null,
+            'description' => $data['description'] ?? null,
             'package_type' => isset($data['package_name']) ? (string) $data['package_name'] : null,
-            'oa_id'        => isset($data['oa_id']) ? (string) $data['oa_id'] : null,
+            'oa_id' => isset($data['oa_id']) ? (string) $data['oa_id'] : null,
         ], static fn ($v): bool => $v !== null && $v !== ''))->save();
     }
 }

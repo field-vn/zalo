@@ -14,9 +14,7 @@ use Illuminate\Http\Request;
 
 class AuthorizeController
 {
-    public function __construct(private readonly Authorizer $authorizer)
-    {
-    }
+    public function __construct(private readonly Authorizer $authorizer) {}
 
     /** Chuyển hướng admin OA sang trang cấp quyền của Zalo. */
     public function redirect(string $oa, OaRepository $oas): RedirectResponse

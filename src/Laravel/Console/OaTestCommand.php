@@ -6,17 +6,20 @@ namespace FieldVn\Zalo\Laravel\Console;
 
 use FieldVn\Zalo\Contracts\Factory;
 use FieldVn\Zalo\Core\Exceptions\ZaloException;
+use FieldVn\Zalo\Laravel\Console\Concerns\InteractsWithInput;
 use Illuminate\Console\Command;
 
 class OaTestCommand extends Command
 {
+    use InteractsWithInput;
+
     protected $signature = 'zalo:oa:test {oa : Slug hoặc id của OA}';
 
     protected $description = 'Gọi thử Zalo API để xác nhận kết nối còn sống';
 
     public function handle(Factory $zalo): int
     {
-        $key = (string) $this->argument('oa');
+        $key = $this->stringArgument('oa');
 
         $this->newLine();
 
@@ -34,7 +37,7 @@ class OaTestCommand extends Command
         /** @var array<string, mixed> $data */
         $data = (array) $info->payload();
 
-        $this->line("  <fg=green>✓</> Kết nối OK");
+        $this->line('  <fg=green>✓</> Kết nối OK');
         $this->line('     Tên        '.($data['name'] ?? '—'));
         $this->line('     OA ID      '.($data['oa_id'] ?? '—'));
         $this->line('     Gói dịch vụ '.($data['package_name'] ?? '—'));

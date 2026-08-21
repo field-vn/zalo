@@ -120,9 +120,9 @@ class ZaloManager implements Factory
     }
 
     /** Client OAuth cho một App — dùng bởi luồng authorize và refresh. */
-    public function oauth(string $appKey = 'default'): OAuthClient
+    public function oauth(?string $appKey = null): OAuthClient
     {
-        $app = $this->appConfig($appKey);
+        $app = $this->appConfig($this->resolveAppKey($appKey));
 
         return new OAuthClient(
             transport: $this->transport(),
@@ -174,7 +174,7 @@ class ZaloManager implements Factory
     protected function buildOa(ZaloOa $oa): OAChannel
     {
         // Ném lỗi sớm và rõ ràng nếu App chưa cấu hình, thay vì để hỏng ở tầng HTTP.
-        $this->appConfig($oa->app_key);
+        $this->appConfig($this->resolveAppKey($oa->app_key));
 
         return new OAChannel(
             slug: $oa->slug,
@@ -182,6 +182,19 @@ class ZaloManager implements Factory
             tokens: $this->tokenProviderFor($oa),
             baseUrl: (string) config('zalo.endpoints.oa'),
         );
+    }
+
+    /**
+     * Bản ghi cũ hoặc tạo bằng raw query có thể thiếu app_key — dùng app
+     * mặc định thay vì ném TypeError khó hiểu.
+     */
+    protected function resolveAppKey(?string $appKey): string
+    {
+        if ($appKey !== null && $appKey !== '') {
+            return $appKey;
+        }
+
+        return (string) config('zalo.default_app', 'default');
     }
 
     /** @return array{app_id: string, app_secret: string, redirect: string} */

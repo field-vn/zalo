@@ -6,6 +6,7 @@ namespace FieldVn\Zalo\Laravel\Console;
 
 use FieldVn\Zalo\Contracts\OaRepository;
 use FieldVn\Zalo\Core\Exceptions\ZaloException;
+use FieldVn\Zalo\Laravel\Console\Concerns\InteractsWithInput;
 use FieldVn\Zalo\Laravel\Events\ZaloOaDisconnected;
 use FieldVn\Zalo\Laravel\Managers\ZaloManager;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
@@ -22,6 +23,8 @@ use Illuminate\Support\Collection;
  */
 class RefreshTokensCommand extends Command
 {
+    use InteractsWithInput;
+
     protected $signature = 'zalo:token:refresh
                             {oa?     : Slug hoặc id của OA}
                             {--all   : Toàn bộ OA đang active}
@@ -67,9 +70,9 @@ class RefreshTokensCommand extends Command
     /** @return Collection<int, ZaloOa> */
     private function targets(OaRepository $oas): Collection
     {
-        $slug = $this->argument('oa');
+        $slug = $this->stringArgument('oa');
 
-        if (is_string($slug) && $slug !== '') {
+        if ($slug !== '') {
             $oa = $oas->find($slug);
 
             if (! $oa instanceof ZaloOa) {

@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace FieldVn\Zalo\Laravel\Console;
 
+use FieldVn\Zalo\Laravel\Console\Concerns\InteractsWithInput;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
 class OaAddCommand extends Command
 {
+    use InteractsWithInput;
+
     protected $signature = 'zalo:oa:add
                             {--name=      : Tên gợi nhớ}
                             {--slug=      : Slug dùng trong code, ví dụ Zalo::oa("cskh")}
@@ -22,7 +25,7 @@ class OaAddCommand extends Command
 
     public function handle(): int
     {
-        $name = (string) ($this->option('name') ?: $this->ask('Tên OA'));
+        $name = $this->stringOption('name') ?: (string) $this->ask('Tên OA');
 
         if ($name === '') {
             $this->components->error('Tên không được rỗng.');
@@ -30,7 +33,7 @@ class OaAddCommand extends Command
             return self::FAILURE;
         }
 
-        $slug = (string) ($this->option('slug') ?: $this->ask('Slug', Str::slug($name)));
+        $slug = $this->stringOption('slug') ?: (string) $this->ask('Slug', Str::slug($name));
         $slug = Str::slug($slug);
 
         if (ZaloOa::query()->where('slug', $slug)->exists()) {
@@ -39,7 +42,7 @@ class OaAddCommand extends Command
             return self::FAILURE;
         }
 
-        $oaId = trim((string) ($this->option('oa-id') ?: $this->ask('OA ID')));
+        $oaId = $this->stringOption('oa-id') ?: trim((string) $this->ask('OA ID'));
 
         if ($oaId === '') {
             $this->components->error('OA ID không được rỗng — lấy ở trang quản trị Zalo OA.');
@@ -53,7 +56,7 @@ class OaAddCommand extends Command
             return self::FAILURE;
         }
 
-        $appKey = (string) ($this->option('app') ?: config('zalo.default_app', 'default'));
+        $appKey = $this->stringOption('app') ?: (string) config('zalo.default_app', 'default');
 
         if (config('zalo.apps.'.$appKey) === null) {
             $this->components->error("App [{$appKey}] chưa được khai trong config/zalo.php.");
@@ -61,17 +64,14 @@ class OaAddCommand extends Command
             return self::FAILURE;
         }
 
-        $tags = array_values(array_filter(array_map(
-            'trim',
-            explode(',', (string) $this->option('tags'))
-        )));
+        $tags = $this->listOption('tags');
 
         $oa = ZaloOa::create([
-            'name'      => $name,
-            'slug'      => $slug,
-            'oa_id'     => $oaId,
-            'app_key'   => $appKey,
-            'tags'      => $tags ?: null,
+            'name' => $name,
+            'slug' => $slug,
+            'oa_id' => $oaId,
+            'app_key' => $appKey,
+            'tags' => $tags ?: null,
             // Chưa có token thì chưa dùng được — bật lên sau khi cấp quyền xong.
             'is_active' => false,
         ]);

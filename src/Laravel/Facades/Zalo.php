@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static Collection<int,OAChannel> oas(?callable $filter = null)
  * @method static Collection<int,ZaloOa> availableOas()
  * @method static Collection<int,object> availableBots()
- * @method static OAuthClient oauth(string $appKey = 'default')
+ * @method static OAuthClient oauth(?string $appKey = null)
  * @method static RefreshingTokenProvider tokenProviderFor(ZaloOa $oa)
  * @method static void forgetResolved()
  *

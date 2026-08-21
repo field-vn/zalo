@@ -6,6 +6,7 @@ namespace FieldVn\Zalo\Laravel\Console;
 
 use FieldVn\Zalo\Contracts\OaRepository;
 use FieldVn\Zalo\Core\Exceptions\ZaloException;
+use FieldVn\Zalo\Laravel\Console\Concerns\InteractsWithInput;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
 use FieldVn\Zalo\Laravel\Support\Authorizer;
 use Illuminate\Console\Command;
@@ -21,13 +22,15 @@ use Illuminate\Console\Command;
  */
 class AuthorizeCommand extends Command
 {
+    use InteractsWithInput;
+
     protected $signature = 'zalo:authorize {oa : Slug hoặc id của OA}';
 
     protected $description = 'Cấp quyền cho một OA và lấy token lần đầu';
 
     public function handle(OaRepository $oas, Authorizer $authorizer): int
     {
-        $key    = (string) $this->argument('oa');
+        $key = $this->stringArgument('oa');
         $record = $oas->find($key);
 
         if (! $record instanceof ZaloOa) {
@@ -39,7 +42,7 @@ class AuthorizeCommand extends Command
         }
 
         $redirect = $authorizer->redirectUri($record);
-        $url      = $authorizer->consentUrl($record);
+        $url = $authorizer->consentUrl($record);
 
         $this->newLine();
         $this->line("  <options=bold>Cấp quyền cho OA `{$record->slug}`</>");
