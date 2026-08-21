@@ -19,7 +19,7 @@ SDK Laravel cho **Zalo Official Account** và **Zalo Bot**. Quản lý nhiều O
 ## Yêu cầu
 
 - PHP 8.2+
-- Laravel 10, 11 hoặc 12
+- Laravel 10, 11, 12 hoặc 13
 
 ## Cài đặt
 

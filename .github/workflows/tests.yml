@@ -12,10 +12,13 @@ jobs:
       fail-fast: false
       matrix:
         php: ['8.2', '8.3', '8.4']
-        laravel: ['10.*', '11.*', '12.*']
+        laravel: ['10.*', '11.*', '12.*', '13.*']
         exclude:
+          # Laravel 12 và 13 yêu cầu PHP 8.3+
           - php: '8.2'
             laravel: '12.*'
+          - php: '8.2'
+            laravel: '13.*'
 
     name: PHP ${{ matrix.php }} · Laravel ${{ matrix.laravel }}
 
