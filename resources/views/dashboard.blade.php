@@ -47,6 +47,14 @@
 
     <h2>URL phải khai trong Zalo Developers</h2>
 
+    <div class="zl-alert zl-alert-warn">
+        Zalo chỉ chấp nhận URL thuộc <strong>domain đã xác thực</strong>. Chưa xác thực thì
+        webhook báo <em>"chưa được xác thực domain"</em> và OAuth báo
+        <code>-14003 Invalid redirect uri</code>. Xác thực tại
+        <strong>Zalo Developers → App → Xác thực domain</strong>: tải file HTML họ cấp,
+        đặt vào thư mục <code>public/</code> của dự án, rồi bấm xác thực.
+    </div>
+
     <div class="zl-card">
         <p class="zl-hint" style="margin-top:0">
             <strong>Redirect URI</strong> — App → Official Account → Callback URL.
