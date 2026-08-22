@@ -46,6 +46,19 @@ class ZaloOa extends Model
     ];
 
     /** Prefix chỉ biết được lúc runtime — không hardcode $table. */
+    /**
+     * URL dùng slug, không dùng id.
+     *
+     * Bắt buộc phải khai: Route::bind() chỉ lo chiều URL -> model, còn
+     * route('zalo.oas.test', $oa) sinh URL từ getRouteKey() vốn mặc định
+     * trả về khoá chính. Thiếu dòng này thì link sinh ra là /oas/1/test
+     * trong khi bind đi tra slug='1' -> 404 ở mọi nút bấm.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function getTable(): string
     {
         return Table::name(Table::OAS);

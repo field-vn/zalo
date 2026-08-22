@@ -30,7 +30,7 @@
                         <td>{!! $statusBadge($oa) !!}</td>
                         <td>
                             <div class="zl-actions">
-                                <a href="{{ route('zalo.oa.authorize', $oa->slug) }}" class="zl-btn zl-btn-primary">
+                                <a href="{{ route('zalo.oa.authorize', $oa) }}" class="zl-btn zl-btn-primary">
                                     {{ $oa->token === null ? 'Cấp quyền' : 'Cấp lại' }}
                                 </a>
 

@@ -156,6 +156,42 @@ it('route authorize báo 404 CÓ THÔNG BÁO khi slug sai', function (): void {
         ->assertNotFound();
 });
 
+it('URL sinh ra từ route() dùng slug, không dùng id', function (): void {
+    // Vòng trước test tự ghép URL bằng $oa->slug nên không bao giờ chạm vào
+    // chiều model -> URL. Thực tế Blade gọi route('...', $model), và nếu model
+    // không khai getRouteKeyName() thì Laravel lấy khoá chính -> /bots/1/test
+    // trong khi Route::bind đi tra slug='1' -> 404 ở mọi nút bấm.
+    $oa = makeConnectedOa('cskh');
+    $bot = ZaloBot::create(['name' => 'Support', 'slug' => 'support', 'token' => '1:a']);
+
+    expect(route('zalo.oas.test', $oa))->toEndWith('/zalo/oas/cskh/test')
+        ->and(route('zalo.oas.toggle', $oa))->toEndWith('/zalo/oas/cskh/toggle')
+        ->and(route('zalo.oas.destroy', $oa))->toEndWith('/zalo/oas/cskh')
+        ->and(route('zalo.oa.authorize', $oa))->toEndWith('/zalo/oa/cskh/authorize')
+        ->and(route('zalo.bots.test', $bot))->toEndWith('/zalo/bots/support/test')
+        ->and(route('zalo.bots.toggle', $bot))->toEndWith('/zalo/bots/support/toggle')
+        ->and(route('zalo.bots.destroy', $bot))->toEndWith('/zalo/bots/support');
+});
+
+it('nút trên trang bot bấm được, không 404', function (): void {
+    // Đi đúng đường người dùng đi: lấy URL y như Blade sinh ra.
+    uiTransport()->push(['data' => ['username' => 'abc_bot']]);
+
+    $bot = ZaloBot::create(['name' => 'Support', 'slug' => 'support', 'token' => '1:a']);
+
+    $this->withHeaders(['Authorization' => 'Basic '.base64_encode('admin:secret')])
+        ->post(route('zalo.bots.test', $bot))
+        ->assertRedirect();
+});
+
+it('nút trên trang OA bấm được, không 404', function (): void {
+    $oa = makeConnectedOa('cskh');
+
+    $this->withHeaders(['Authorization' => 'Basic '.base64_encode('admin:secret')])
+        ->post(route('zalo.oas.toggle', $oa))
+        ->assertRedirect();
+});
+
 it('thêm bot và tự điền username', function (): void {
     uiTransport()->push(['data' => ['username' => 'abc_bot']]);
 

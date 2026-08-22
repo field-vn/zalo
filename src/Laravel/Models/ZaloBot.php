@@ -35,6 +35,19 @@ class ZaloBot extends Model
         'is_active' => 'boolean',
     ];
 
+    /**
+     * URL dùng slug, không dùng id.
+     *
+     * Bắt buộc phải khai: Route::bind() chỉ lo chiều URL -> model, còn
+     * route('zalo.bots.test', $bot) sinh URL từ getRouteKey() vốn mặc định
+     * trả về khoá chính. Thiếu dòng này thì link sinh ra là /bots/1/test
+     * trong khi bind đi tra slug='1' -> 404 ở mọi nút bấm.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function getTable(): string
     {
         return Table::name(Table::BOTS);
