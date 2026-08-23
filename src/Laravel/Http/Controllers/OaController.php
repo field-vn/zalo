@@ -146,13 +146,14 @@ class OaController
      * Dịch mã lỗi hay gặp sang câu người đọc hiểu được.
      *
      * Zalo trả những câu như "User is not in whitelist" mà không nói phải làm
-     * gì. Với tin tư vấn thì nguyên nhân gần như luôn là cửa sổ 48 giờ.
+     * gì. Với tin Tư vấn thì nguyên nhân gần như luôn là hết hạn 7 ngày kể
+     * từ tương tác cuối của người dùng.
      */
     private function explain(ApiException $e): string
     {
         $hint = match ($e->errorCode) {
             -216, -217, -32, -124 => ' Token hết hạn hoặc bị thu hồi — bấm Cấp lại quyền.',
-            -230, -231 => ' Người này chưa nhắn cho OA trong 48 giờ qua, nên chỉ gửi được tin giao dịch hoặc truyền thông.',
+            -230, -231 => ' Người này không có tương tác với OA trong 7 ngày qua, nên OpenAPI không gửi tin Tư vấn được nữa. Dùng ZBS Template Message, hoặc chờ họ tương tác lại.',
             -201 => ' Sai user_id, hoặc người này chưa từng tương tác với OA.',
             default => '',
         };

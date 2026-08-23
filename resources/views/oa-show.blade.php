@@ -54,9 +54,10 @@
             </div>
         @else
             <p class="zl-hint" style="margin-top:0">
-                Gửi một tin THẬT dạng tư vấn. Zalo chỉ cho gửi trong <strong>48 giờ</strong>
-                kể từ tin cuối của người nhận — ngoài khung đó sẽ bị từ chối, và đó là
-                giới hạn của Zalo chứ không phải lỗi cấu hình.
+                Gửi một tin THẬT dạng Tư vấn.
+                <strong>Trong 48 giờ</strong> kể từ tương tác cuối của người nhận thì
+                miễn phí; từ 48 giờ đến <strong>7 ngày</strong> vẫn gửi được nhưng
+                <strong>Zalo tính phí</strong>; quá 7 ngày thì OpenAPI từ chối.
             </p>
 
             <form method="POST" action="{{ route('zalo.oas.send', $oa) }}">

@@ -11,7 +11,24 @@ use FieldVn\Zalo\Core\Http\Response;
 
 final class MessageResource extends Resource
 {
-    /** Gửi tin tư vấn (trong 48h kể từ tin cuối của người dùng). */
+    /**
+     * Gửi tin Tư vấn.
+     *
+     * HAI MỐC THỜI GIAN KHÁC NHAU, rất hay bị nhầm thành một:
+     *
+     *   48 giờ kể từ tương tác cuối  → gửi được và MIỄN PHÍ
+     *   7 ngày  kể từ tương tác cuối → vẫn gửi được qua OpenAPI nhưng TÍNH PHÍ
+     *   sau 7 ngày                   → OpenAPI từ chối
+     *
+     * Nghĩa là 48 giờ KHÔNG phải giới hạn gửi, mà là giới hạn miễn phí. Code
+     * gọi hàm này ngoài khung 48 giờ vẫn chạy trơn tru và vẫn phát sinh tiền.
+     *
+     * "Tương tác" rộng hơn "nhắn tin": còn gồm gọi thoại, bình luận bài viết,
+     * bấm menu hoặc CTA, tương tác chatbot, bấm widget.
+     *
+     * (OA Manager cho tới 365 ngày, nhưng đó là công cụ web của Zalo, không
+     * phải OpenAPI.)
+     */
     public function send(Message $message): Response
     {
         return $this->request

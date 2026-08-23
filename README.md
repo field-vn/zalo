@@ -48,7 +48,7 @@ SDK Laravel cho **Zalo Official Account** và **Zalo Bot**. Quản lý nhiều O
 | "Đang soạn tin" | ✅ | ❌ |
 | **Nút bấm** | ❌ | ✅ |
 | **List / carousel** | ❌ | ✅ |
-| Giới hạn thời gian | không | **48 giờ** kể từ tin cuối của người dùng (tin tư vấn) |
+| Giới hạn thời gian | không | tin Tư vấn: **7 ngày** kể từ tương tác cuối, miễn phí trong 48 giờ đầu |
 | Xác thực webhook | secret nguyên văn ở header | chữ ký HMAC |
 
 Bot đúng nghĩa là Telegram rút gọn. Vì Bot không có nút bấm và không có gì để kết hợp, package **không** tạo message object cho Bot — thêm một lớp object vào đó chỉ là nghi thức thừa và làm người đọc tưởng hai kênh dùng lẫn nhau được.
@@ -57,12 +57,32 @@ Một khác biệt nữa dễ vấp: ở OA, *loại tin* và *định dạng n�
 
 ```
 Trục 1 — GỬI KIỂU GÌ (chỉ OA)        Trục 2 — NỘI DUNG LÀ GÌ
-  /message/cs           48 giờ         text, text + nút, ảnh,
-  /message/transaction  template        file, sticker, list
-  /message/promotion    quota
+  /message/cs         tin Tư vấn        text, text + nút, ảnh,
+  ZBS Template        theo mẫu           file, sticker, list
 ```
 
-Cùng một nội dung text, gửi qua `cs` thì trong 48 giờ là được, gửi qua `promotion` thì cần quota và OA phải đã xác thực.
+### 48 giờ KHÔNG phải giới hạn gửi — nó là giới hạn miễn phí
+
+Chỗ này rất hay bị hiểu sai, và hiểu sai thì mất tiền thật:
+
+| Kể từ tương tác cuối của người dùng | Qua OpenAPI |
+|---|---|
+| trong **48 giờ** | gửi được, **miễn phí** |
+| 48 giờ → **7 ngày** | vẫn gửi được, **Zalo tính phí** |
+| sau 7 ngày | bị từ chối |
+
+Code gọi `messages()->text()` ngoài khung 48 giờ vẫn chạy trơn tru và vẫn phát
+sinh tiền. Package **không** tự chặn, vì nó không biết được thời điểm tương tác
+cuối — chỉ Zalo biết. Muốn kiểm soát chi phí thì tự lưu mốc tương tác từ webhook.
+
+"Tương tác" cũng rộng hơn "nhắn tin": còn gồm gọi thoại tới OA, bình luận bài
+viết, bấm Menu hoặc CTA, tương tác với chatbot, bấm widget.
+
+> **ZBS Template Message thay thế ZNS.** Từ **01/01/2026** Zalo hợp nhất ZNS,
+> tin UID Giao dịch và tin UID Truyền thông thành một giải pháp duy nhất là
+> **ZBS Template Message** (gồm Tin Giao dịch và Tin Hậu mãi), gửi được qua UID
+> hoặc qua số điện thoại. Package **chưa hỗ trợ** — xem
+> [Những gì chưa được xác minh](#những-gì-chưa-được-xác-minh).
 
 ## Yêu cầu
 
@@ -186,10 +206,15 @@ Zalo::oa('cskh')->messages()->image($userId, $id, 'Ảnh sản phẩm');
 ```php
 $messages = Zalo::oa('cskh')->messages();
 
-$messages->send($message);          // tin tư vấn, trong 48 giờ
-$messages->transaction($message);   // tin giao dịch, cần template đã duyệt
-$messages->promotion($message);     // tin truyền thông, cần quota
+$messages->send($message);          // tin Tư vấn
+$messages->transaction($message);   // endpoint cũ — xem cảnh báo bên dưới
+$messages->promotion($message);     // endpoint cũ — xem cảnh báo bên dưới
 ```
+
+> ⚠️ `transaction()` và `promotion()` trỏ tới hai endpoint có từ trước
+> **01/01/2026**, thời điểm Zalo hợp nhất chúng cùng ZNS thành ZBS Template
+> Message. Chúng **có thể đã ngừng hoạt động** — package chưa xác minh được.
+> Nếu bạn gọi thử, xin báo kết quả về issue.
 
 ### Bot
 
@@ -503,7 +528,18 @@ Package này đã chạy thật với Zalo Bot API: URL, hình dạng lỗi, `ge
 | `timestamp` webhook tính bằng mili giây | Trung bình |
 | Ảnh OA dùng `template_type: media` | Trung bình |
 | `ImageMessage::url()` — OA nhận URL thay `attachment_id` | **Cao** — nhiều khả năng chỉ Bot mới nhận URL |
+| `transaction()` / `promotion()` còn hoạt động sau 01/01/2026 | **Cao** — Zalo đã hợp nhất chúng vào ZBS Template Message |
 | `refresh_token` sống ~90 ngày | Chỉ biết sau vài tháng |
+
+**Chưa hỗ trợ: ZBS Template Message.** Đây là khoảng trống lớn nhất còn lại.
+Từ 01/01/2026, ZNS và tin UID Giao dịch/Truyền thông đã gộp thành ZBS Template
+Message — kênh duy nhất gửi được tới người **chưa từng tương tác** với OA, kể
+cả qua số điện thoại. OTP, xác nhận đơn, nhắc lịch đều nằm ở đây.
+
+Chưa làm vì tài liệu ZBS trên `developers.zalo.me` render bằng JS và không đọc
+được bằng công cụ tự động, mà ZBS **tốn tiền mỗi tin** nên đoán payload là
+không chấp nhận được. Nếu bạn có tài khoản ZBS và copy được tài liệu, xin mở
+issue — đây là đóng góp có tác động lớn nhất lúc này.
 
 Danh sách đầy đủ và cách kiểm từng cái nằm ở [`docs/zalo/02-test-thuc-te.md`](https://github.com/field-vn/zalo) trong repo phát triển.
 
