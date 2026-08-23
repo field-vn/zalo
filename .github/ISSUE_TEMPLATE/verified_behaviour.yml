@@ -1,0 +1,62 @@
+name: Xác minh hành vi của Zalo API
+description: Bạn đã gọi thật một API mà package còn đang phỏng đoán
+labels: [verification]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Đây là loại đóng góp **có giá trị nhất** cho package này.
+
+        Tài liệu của Zalo không đầy đủ, nên một phần payload trong package
+        dựa trên suy đoán. Mục "Những gì chưa được xác minh" trong README
+        liệt kê thẳng những chỗ đó.
+
+        Kết quả là *"cái này sai"* cũng quý ngang *"cái này đúng"* — thậm chí
+        quý hơn, vì nó gỡ được một cái bẫy khỏi tay người dùng sau.
+
+  - type: input
+    id: which
+    attributes:
+      label: Giả định nào
+      description: Số thứ tự trong README, hoặc mô tả ngắn.
+      placeholder: "Số 12 — ImageMessage::url()"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: result
+    attributes:
+      label: Kết quả
+      options:
+        - Đúng như package đang làm
+        - SAI — payload thật khác
+        - Zalo từ chối hoàn toàn, tính năng này không tồn tại
+    validations:
+      required: true
+
+  - type: textarea
+    id: request
+    attributes:
+      label: Request đã gửi
+      description: URL, method, và body. Xoá token, secret và dữ liệu cá nhân.
+      render: json
+    validations:
+      required: true
+
+  - type: textarea
+    id: response
+    attributes:
+      label: Response Zalo trả về
+      description: Nguyên văn, kể cả mã lỗi.
+      render: json
+    validations:
+      required: true
+
+  - type: input
+    id: context
+    attributes:
+      label: Bối cảnh OA/Bot
+      description: |
+        Có ảnh hưởng tới kết quả. Ví dụ OA đã xác thực hay chưa, gói dịch vụ
+        nào, bot loại BASIC hay khác.
+      placeholder: "OA tick vàng, đã liên kết ZBS · trong khung 48h"

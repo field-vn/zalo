@@ -1,0 +1,13 @@
+# Nút "Sponsor" trên trang GitHub của repo.
+#
+# Đang để trống có chủ đích — điền tài khoản THẬT của bạn rồi bỏ dấu # ở
+# dòng tương ứng. Khai một tài khoản không tồn tại thì GitHub ẩn luôn nút,
+# tệ hơn là không khai gì.
+#
+# GitHub Sponsors yêu cầu tài khoản được duyệt trước; xem
+# https://github.com/sponsors — chấp nhận cả cá nhân ở Việt Nam.
+
+# github: [field-vn]
+# ko_fi: your-handle
+# buy_me_a_coffee: your-handle
+# custom: ["https://field.vn/donate"]

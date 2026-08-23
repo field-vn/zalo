@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Lỗ hổng bảo mật
+    url: https://github.com/field-vn/zalo/security/advisories/new
+    about: ĐỪNG mở public issue. Báo riêng qua đây — xem SECURITY.md.
+  - name: Tài liệu Zalo for Developers
+    url: https://developers.zalo.me/docs
+    about: Câu hỏi về chính Zalo API (không phải về package) nên hỏi ở đây.

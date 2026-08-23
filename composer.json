@@ -1,7 +1,15 @@
 {
     "name": "field-vn/zalo",
     "description": "Zalo OA & Bot SDK cho Laravel — quản lý nhiều OA, tự refresh token, có UI cấu hình",
-    "keywords": ["laravel", "php", "zalo", "zalo-oa", "zalo-bot", "vietnam", "chatbot"],
+    "keywords": [
+        "laravel",
+        "php",
+        "zalo",
+        "zalo-oa",
+        "zalo-bot",
+        "vietnam",
+        "chatbot"
+    ],
     "homepage": "https://github.com/field-vn/zalo",
     "license": "MIT",
     "authors": [
@@ -10,6 +18,11 @@
             "email": "trieu.nguyennhu@gmail.com"
         }
     ],
+    "support": {
+        "issues": "https://github.com/field-vn/zalo/issues",
+        "source": "https://github.com/field-vn/zalo",
+        "docs": "https://github.com/field-vn/zalo#readme"
+    },
     "require": {
         "php": "^8.2",
         "ext-json": "*",
@@ -47,17 +60,17 @@
             }
         }
     },
-    "scripts": {
-        "test": "pest",
-        "test:coverage": "pest --coverage",
-        "analyse": "phpstan analyse --memory-limit=1G",
-        "format": "pint"
-    },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true
         }
+    },
+    "scripts": {
+        "test": "pest",
+        "test:coverage": "pest --coverage",
+        "analyse": "phpstan analyse --memory-limit=1G",
+        "format": "pint"
     },
     "minimum-stability": "stable",
     "prefer-stable": true

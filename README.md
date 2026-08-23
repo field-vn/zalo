@@ -519,7 +519,11 @@ composer format
 
 ## Đóng góp
 
-Xem [CONTRIBUTING.md](CONTRIBUTING.md).
+Xem [CONTRIBUTING.md](CONTRIBUTING.md) và [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+Đóng góp có giá trị nhất cho package này **không phải code** — mà là xác minh
+một giả định trong mục ở trên bằng cách gọi thật Zalo API rồi dán kết quả vào
+issue. Có sẵn mẫu [Xác minh hành vi của Zalo API](https://github.com/field-vn/zalo/issues/new/choose).
 
 ## Bảo mật
 

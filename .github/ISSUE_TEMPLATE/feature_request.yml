@@ -1,0 +1,42 @@
+name: Đề xuất tính năng
+description: Package thiếu thứ gì đó bạn cần
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Bạn đang vướng gì
+      description: |
+        Mô tả vấn đề thật, đừng mô tả giải pháp. Biết bạn đang cố làm gì thì
+        thường tìm ra cách gọn hơn cách bạn nghĩ tới ban đầu.
+    validations:
+      required: true
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Hiện đang làm sao để đi tiếp
+      description: |
+        `RawMessage` hay `->request()` có giải quyết tạm được không? Nếu có
+        thì mô tả nó vướng ở đâu.
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Thuộc phần nào
+      options:
+        - Official Account API
+        - Bot API
+        - Webhook
+        - UI
+        - Command
+        - Testing (Zalo::fake)
+        - Khác
+    validations:
+      required: true
+
+  - type: textarea
+    id: api
+    attributes:
+      label: Bạn hình dung code trông thế nào
+      render: php

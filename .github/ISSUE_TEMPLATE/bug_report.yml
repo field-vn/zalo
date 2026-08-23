@@ -1,0 +1,76 @@
+name: Báo lỗi
+description: Có gì đó không chạy đúng
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Trước khi mở issue, chạy `php artisan zalo:doctor` — phần lớn vấn đề
+        cấu hình sẽ được nó chỉ ra kèm cách sửa.
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Kết quả `php artisan zalo:doctor`
+      description: |
+        Dán nguyên output. Lệnh này không in ra secret hay token, nhưng vẫn
+        kiểm lại một lượt trước khi dán lên chỗ công khai.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Chuyện gì xảy ra
+      description: Bạn làm gì, mong đợi gì, và thực tế nhận được gì.
+    validations:
+      required: true
+
+  - type: textarea
+    id: error
+    attributes:
+      label: Thông báo lỗi
+      description: |
+        Dán nguyên văn, kể cả **mã lỗi** của Zalo (ví dụ `-216`, `-14003`).
+        Tài liệu Zalo tra theo mã chứ không tra theo câu chữ, nên thiếu mã là
+        rất khó giúp.
+      render: text
+
+  - type: input
+    id: versions
+    attributes:
+      label: Phiên bản
+      placeholder: "field-vn/zalo 0.1.0 · Laravel 11.31 · PHP 8.3"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: channel
+    attributes:
+      label: Kênh nào
+      options:
+        - Official Account
+        - Bot
+        - Cả hai
+        - Không liên quan kênh nào (cài đặt, UI, command…)
+    validations:
+      required: true
+
+  - type: textarea
+    id: payload
+    attributes:
+      label: Payload Zalo trả về (nếu có)
+      description: |
+        Rất hữu ích, nhất là với các dạng tin chưa được xác minh. **Xoá
+        `user_id`, `chat_id`, số điện thoại và nội dung tin nhắn thật** trước
+        khi dán.
+      render: json
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Đã kiểm
+      options:
+        - label: Đã chạy `zalo:doctor` và làm theo hướng dẫn nó đưa ra
+        - label: Đã xoá secret, token và dữ liệu cá nhân khỏi nội dung dán ở trên
