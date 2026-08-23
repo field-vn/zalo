@@ -39,10 +39,19 @@
                 {{ $secretLength }} ký tự — do bạn tự đặt, khác OA Secret Key do Zalo cấp.
             </p>
 
+            @unless (str_starts_with($webhookUrl, 'https://'))
+                <div class="zl-alert zl-alert-err" style="margin:14px 0 0">
+                    URL đang là <strong>HTTP</strong> nên không cắm được. Zalo gửi secret
+                    <strong>nguyên văn</strong> ở header, HTTP là để lộ nó.
+                    Dùng tunnel HTTPS (cloudflared/ngrok) rồi đặt lại <code>APP_URL</code>.
+                </div>
+            @endunless
+
             <div class="zl-actions" style="margin-top:14px">
                 <form method="POST" action="{{ route('zalo.bots.webhook.set', $bot) }}">
                     @csrf
-                    <button class="zl-btn zl-btn-primary">Cắm webhook</button>
+                    <button class="zl-btn zl-btn-primary"
+                            @disabled(! str_starts_with($webhookUrl, 'https://'))>Cắm webhook</button>
                 </form>
 
                 <form method="POST" action="{{ route('zalo.bots.webhook.delete', $bot) }}"

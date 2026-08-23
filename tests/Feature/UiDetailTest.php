@@ -8,6 +8,7 @@ use FieldVn\Zalo\Laravel\Models\ZaloBotChat;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
 use FieldVn\Zalo\Laravel\Models\ZaloOaToken;
 use FieldVn\Zalo\Tests\Support\FakeTransport;
+use Illuminate\Support\Facades\URL;
 
 /*
 | Trang chi tiết là nơi developer làm gần hết việc cài đặt: sửa, cắm webhook,
@@ -169,7 +170,23 @@ it('từ chối OA ID đã thuộc về OA khác', function (): void {
 | Webhook của bot.
 */
 
+it('CHẶN cắm webhook qua HTTP, không gọi mạng', function (): void {
+    // Secret đi nguyên văn trong header X-Bot-Api-Secret-Token, nên HTTP là
+    // để lộ nó. Zalo cũng từ chối, nhưng chặn sớm thì đỡ một request và cho
+    // được thông báo nói rõ lý do.
+    $fake = fakeNet();
+    $bot = aBot();
+
+    test()->withHeaders(auth2())
+        ->post(route('zalo.bots.webhook.set', $bot))
+        ->assertSessionHas('zalo.error', fn (string $m): bool => str_contains($m, 'HTTPS'));
+
+    expect($fake->requests)->toBeEmpty();
+});
+
 it('cắm webhook gửi đúng URL riêng của bot kèm secret', function (): void {
+    URL::forceScheme('https');
+
     $fake = fakeNet()->push(['ok' => true, 'result' => true]);
     $bot = aBot();
 
@@ -184,6 +201,7 @@ it('cắm webhook gửi đúng URL riêng của bot kèm secret', function (): v
 });
 
 it('KHÔNG cắm webhook khi secret chưa hợp lệ', function (): void {
+    URL::forceScheme('https');
     config()->set('zalo.bot.webhook_secret', 'ngan');
     $fake = fakeNet();
     $bot = aBot();
