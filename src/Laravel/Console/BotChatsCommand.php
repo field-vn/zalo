@@ -56,9 +56,11 @@ class BotChatsCommand extends Command
         $hint = '<slug> <chat_id>';
 
         foreach ($chats as $chat) {
-            // FK cascadeOnDelete: xoá bot là xoá luôn chat, nên quan hệ này
-            // không bao giờ rỗng.
-            $botSlug = $chat->bot->slug;
+            // FK cascadeOnDelete nên trên thực tế quan hệ này luôn có; vẫn
+            // kiểm tường minh vì kiểu trả về là nullable và một lệnh chẩn
+            // đoán thì không được phép tự nó ngã.
+            $bot = $chat->bot;
+            $botSlug = $bot instanceof ZaloBot ? $bot->slug : '—';
 
             if ($rows === []) {
                 $hint = $botSlug.' '.$chat->chat_id;
