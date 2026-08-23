@@ -72,7 +72,7 @@ h2 { font-size: 16px; margin: 32px 0 12px; }
 
 table { width: 100%; border-collapse: collapse; background: var(--zl-surface); border: 1px solid var(--zl-border); border-radius: var(--zl-radius); overflow: hidden; }
 th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--zl-muted); padding: 11px 14px; border-bottom: 1px solid var(--zl-border); font-weight: 600; }
-td { padding: 13px 14px; border-bottom: 1px solid var(--zl-border); font-size: 14px; vertical-align: middle; }
+td { padding: 11px 14px; border-bottom: 1px solid var(--zl-border); font-size: 14px; vertical-align: middle; }
 tr:last-child td { border-bottom: 0; }
 .zl-table-scroll { overflow-x: auto; }
 
@@ -87,13 +87,23 @@ tr:last-child td { border-bottom: 0; }
 .zl-alert-err { background: var(--zl-err-bg); color: var(--zl-err); }
 .zl-alert-warn { background: var(--zl-warn-bg); color: var(--zl-warn); }
 
+/* Nút vô hiệu vẫn phải NHÌN ra là vô hiệu, không chỉ không bấm được. */
+.zl-btn[disabled] { opacity: .45; cursor: not-allowed; }
+.zl-btn[disabled]:hover { border-color: var(--zl-border); }
 .zl-btn { display: inline-block; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--zl-border); background: var(--zl-surface); color: var(--zl-text); font-size: 13px; font-weight: 500; text-decoration: none; cursor: pointer; font-family: inherit; }
 .zl-btn:hover { border-color: var(--zl-muted); }
 .zl-btn-primary { background: var(--zl-primary); border-color: var(--zl-primary); color: #fff; }
 .zl-btn-primary:hover { opacity: .9; border-color: var(--zl-primary); }
 .zl-btn-danger { color: var(--zl-err); }
-.zl-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.zl-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .zl-actions form { display: inline; }
+
+/* Ô hành động cuối bảng: KHÔNG cho xuống dòng.
+   `width:1%` bảo trình duyệt thu ô về hẹp nhất có thể, mà nút lại được phép
+   wrap, nên chúng xếp thành cột và kéo cao cả hàng. `nowrap` giữ chúng trên
+   một dòng; `width:1%` lúc này chỉ còn nghĩa là "vừa đủ chứa". */
+td .zl-actions { flex-wrap: nowrap; white-space: nowrap; justify-content: flex-end; }
+td .zl-actions .zl-btn { padding: 5px 10px; font-size: 12px; }
 
 label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; }
 input[type=text], input[type=password] { width: 100%; padding: 8px 11px; border: 1px solid var(--zl-border); border-radius: 8px; background: var(--zl-bg); color: var(--zl-text); font: inherit; font-size: 14px; }
