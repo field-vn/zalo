@@ -46,6 +46,35 @@ final class BotChannel implements Channel
         return new UpdateResource($this->request());
     }
 
+    /*
+    | Đường tắt.
+    |
+    | Bot CỐ Ý không có message object như OA: nó không có nút, không có
+    | list, không có gì để kết hợp — bọc thêm một lớp object chỉ là nghi thức
+    | thừa. OA cần object vì tin có thể ghép nút, ảnh, chú thích với nhau.
+    */
+
+    public function text(string $chatId, string $text): Response
+    {
+        return $this->messages()->send($chatId, $text);
+    }
+
+    public function photo(string $chatId, string $photoUrl, string $caption = ''): Response
+    {
+        return $this->messages()->sendPhoto($chatId, $photoUrl, $caption);
+    }
+
+    public function sticker(string $chatId, string $stickerId): Response
+    {
+        return $this->messages()->sendSticker($chatId, $stickerId);
+    }
+
+    /** Hiện "đang soạn tin" — gọi trước khi làm việc lâu (AI, tra cứu chậm). */
+    public function typing(string $chatId): Response
+    {
+        return $this->messages()->sendChatAction($chatId, 'typing');
+    }
+
     public function me(): Response
     {
         return $this->request()->get('/getMe')->throwIfFailed();

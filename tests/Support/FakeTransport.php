@@ -44,6 +44,11 @@ final class FakeTransport implements Transport
         return $this->record('FORM', $url, $form, $headers);
     }
 
+    public function postMultipart(string $url, array $files, array $form = [], array $headers = []): Response
+    {
+        return $this->record('MULTIPART', $url, $form + ['__files' => $files], $headers);
+    }
+
     /**
      * @param  array<string, mixed>  $data
      * @param  array<string, string>  $headers

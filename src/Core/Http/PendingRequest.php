@@ -33,6 +33,15 @@ final class PendingRequest
         return $this->transport->post($this->url($path), $payload, $this->headers());
     }
 
+    /**
+     * @param  array<string, string>  $files
+     * @param  array<string, mixed>  $form
+     */
+    public function postMultipart(string $path, array $files, array $form = []): Response
+    {
+        return $this->transport->postMultipart($this->url($path), $files, $form, $this->headers());
+    }
+
     private function url(string $path): string
     {
         return rtrim($this->baseUrl, '/').'/'.ltrim($path, '/');

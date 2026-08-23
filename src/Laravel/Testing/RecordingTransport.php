@@ -36,6 +36,13 @@ final class RecordingTransport implements Transport
         return $this->record('FORM', $url, $form, $headers);
     }
 
+    public function postMultipart(string $url, array $files, array $form = [], array $headers = []): Response
+    {
+        // Ghi cả danh sách file để assert được là upload đúng cái gì, nhưng
+        // KHÔNG đọc nội dung file — fake không được chạm đĩa.
+        return $this->record('MULTIPART', $url, $form + ['__files' => $files], $headers);
+    }
+
     /**
      * @param  array<string, mixed>  $payload
      * @param  array<string, string>  $headers

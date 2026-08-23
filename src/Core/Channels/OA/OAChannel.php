@@ -9,6 +9,7 @@ use FieldVn\Zalo\Contracts\Transport;
 use FieldVn\Zalo\Core\Auth\RefreshingTokenProvider;
 use FieldVn\Zalo\Core\Channels\OA\Resources\MessageResource;
 use FieldVn\Zalo\Core\Channels\OA\Resources\TagResource;
+use FieldVn\Zalo\Core\Channels\OA\Resources\UploadResource;
 use FieldVn\Zalo\Core\Channels\OA\Resources\UserResource;
 use FieldVn\Zalo\Core\Exceptions\ZaloException;
 use FieldVn\Zalo\Core\Http\PendingRequest;
@@ -45,6 +46,12 @@ final class OAChannel implements Channel
     public function users(): UserResource
     {
         return new UserResource($this->request());
+    }
+
+    /** Upload ảnh lấy attachment_id — bắt buộc trước khi gửi ảnh qua OA. */
+    public function uploads(): UploadResource
+    {
+        return new UploadResource($this->request());
     }
 
     public function tags(): TagResource

@@ -30,4 +30,17 @@ interface Transport
      * @param  array<string, string>  $headers
      */
     public function postForm(string $url, array $form = [], array $headers = []): Response;
+
+    /**
+     * Gửi multipart/form-data — upload ảnh/file lên OA yêu cầu dạng này.
+     *
+     * `$files` là map tên trường => đường dẫn file trên đĩa. Tách khỏi `$form`
+     * để transport tự lo việc mở stream và đóng lại, thay vì bắt caller
+     * truyền resource rồi tự nhớ fclose.
+     *
+     * @param  array<string, string>  $files
+     * @param  array<string, mixed>  $form
+     * @param  array<string, string>  $headers
+     */
+    public function postMultipart(string $url, array $files, array $form = [], array $headers = []): Response;
 }

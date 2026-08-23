@@ -103,6 +103,36 @@ it('setWebhook chặn secret rỗng hoặc quá ngắn, không gọi mạng', fu
     'dài hơn 256' => [str_repeat('a', 257)],
 ]);
 
+it('đường tắt trên BotChannel đi đúng endpoint', function (string $method, array $args, string $endpoint, array $data): void {
+    $t = new FakeTransport;
+    $t->push(['ok' => true, 'result' => []]);
+
+    botWith($t)->{$method}(...$args);
+
+    $req = $t->lastRequest();
+
+    expect($req['url'])->toBe('https://bot-api.zapps.me/botTOKEN123/'.$endpoint)
+        ->and($req['data'])->toBe($data);
+})->with([
+    'text' => ['text', ['c-1', 'chào'], 'sendMessage', ['chat_id' => 'c-1', 'text' => 'chào']],
+    'photo' => ['photo', ['c-1', 'https://a.test/x.jpg'], 'sendPhoto', ['chat_id' => 'c-1', 'photo' => 'https://a.test/x.jpg']],
+    'sticker' => ['sticker', ['c-1', 'st-9'], 'sendSticker', ['chat_id' => 'c-1', 'sticker' => 'st-9']],
+    'typing' => ['typing', ['c-1'], 'sendChatAction', ['chat_id' => 'c-1', 'action' => 'typing']],
+]);
+
+it('photo chỉ kèm caption khi có', function (): void {
+    $t = new FakeTransport;
+    $t->push(['ok' => true, 'result' => []]);
+
+    botWith($t)->photo('c-1', 'https://a.test/x.jpg', 'chú thích');
+
+    expect($t->lastRequest()['data'])->toBe([
+        'chat_id' => 'c-1',
+        'photo' => 'https://a.test/x.jpg',
+        'caption' => 'chú thích',
+    ]);
+});
+
 it('ping() trả false khi Zalo báo ok=false chứ không ném ra ngoài', function (): void {
     $t = new FakeTransport;
     $t->push(['ok' => false, 'description' => 'Not Found', 'error_code' => 404]);

@@ -52,6 +52,44 @@ final class GuzzleTransport implements Transport
         ]);
     }
 
+    public function postMultipart(string $url, array $files, array $form = [], array $headers = []): Response
+    {
+        $parts = [];
+        $handles = [];
+
+        foreach ($files as $field => $path) {
+            if (! is_readable($path)) {
+                throw new TransportException("Không đọc được file để upload: {$path}");
+            }
+
+            $handle = fopen($path, 'r');
+
+            if ($handle === false) {
+                throw new TransportException("Không mở được file để upload: {$path}");
+            }
+
+            $handles[] = $handle;
+            $parts[] = ['name' => $field, 'contents' => $handle, 'filename' => basename($path)];
+        }
+
+        foreach ($form as $field => $value) {
+            $parts[] = ['name' => $field, 'contents' => (string) $value];
+        }
+
+        try {
+            // Không tự đặt Content-Type: Guzzle phải tự sinh boundary.
+            return $this->send('POST', $url, ['multipart' => $parts, 'headers' => $headers]);
+        } finally {
+            // finally chứ không phải sau return: request ném exception thì
+            // handle vẫn phải đóng, nếu không sẽ rò file descriptor.
+            foreach ($handles as $handle) {
+                if (is_resource($handle)) {
+                    fclose($handle);
+                }
+            }
+        }
+    }
+
     /** @param array<string, mixed> $options */
     private function send(string $method, string $url, array $options): Response
     {
