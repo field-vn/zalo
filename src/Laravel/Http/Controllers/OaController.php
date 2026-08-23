@@ -6,6 +6,7 @@ namespace FieldVn\Zalo\Laravel\Http\Controllers;
 
 use FieldVn\Zalo\Contracts\Factory;
 use FieldVn\Zalo\Contracts\OaRepository;
+use FieldVn\Zalo\Core\Exceptions\ApiException;
 use FieldVn\Zalo\Core\Exceptions\ZaloException;
 use FieldVn\Zalo\Laravel\Models\ZaloAuditLog;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
@@ -60,6 +61,103 @@ class OaController
 
         return redirect()->route('zalo.oas.index')
             ->with('zalo.success', "Đã thêm OA `{$oa->slug}`. Bấm Cấp quyền để kết nối.");
+    }
+
+    public function show(ZaloOa $oa): View
+    {
+        return view('zalo::oa-show', [
+            'oa' => $oa,
+            'statusBadge' => OaPresenter::statusBadge(...),
+            'tokenSummary' => OaPresenter::tokenSummary(...),
+        ]);
+    }
+
+    /**
+     * Sửa OA đã thêm.
+     *
+     * `oa_id` sửa được nhưng có cảnh báo: token đã lưu gắn với OA cũ, đổi id
+     * mà không cấp quyền lại thì mọi lời gọi sẽ đi nhầm chỗ hoặc bị từ chối.
+     */
+    public function update(Request $request, ZaloOa $oa): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'oa_id' => [
+                'required', 'string', 'max:64',
+                Rule::unique(Table::name(Table::OAS), 'oa_id')->ignore($oa->getKey()),
+            ],
+            'tags' => ['nullable', 'string', 'max:255'],
+        ], [
+            'oa_id.unique' => 'OA ID này đã thuộc về một OA khác.',
+        ]);
+
+        $tags = array_values(array_filter(array_map('trim', explode(',', (string) ($data['tags'] ?? '')))));
+        $oaIdChanged = $data['oa_id'] !== $oa->oa_id;
+
+        $oa->forceFill([
+            'name' => $data['name'],
+            'oa_id' => $data['oa_id'],
+            'tags' => $tags ?: null,
+        ])->save();
+
+        ZaloAuditLog::record('oa.updated', $oa);
+
+        if ($oaIdChanged && $oa->token !== null) {
+            // Không tự xoá token: quyết định đó thuộc về người dùng. Nhưng
+            // phải nói rõ, vì im lặng ở đây đẻ ra lỗi rất khó truy.
+            return back()->with(
+                'zalo.error',
+                "Đã đổi OA ID nhưng token đang lưu vẫn của OA cũ. Bấm Cấp lại quyền, nếu không mọi lời gọi API sẽ sai."
+            );
+        }
+
+        return back()->with('zalo.success', "Đã cập nhật OA `{$oa->slug}`.");
+    }
+
+    /** Gửi một tin thật để xác nhận luồng chạy — công cụ chẩn đoán, không phải công cụ vận hành. */
+    public function send(Request $request, ZaloOa $oa, Factory $zalo): RedirectResponse
+    {
+        $data = $request->validate([
+            'user_id' => ['required', 'string', 'max:64'],
+            'text' => ['required', 'string', 'max:2000'],
+            'attachment_id' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        try {
+            $messages = $zalo->oa($oa->slug)->messages();
+            $attachment = trim((string) ($data['attachment_id'] ?? ''));
+
+            $attachment === ''
+                ? $messages->text($data['user_id'], $data['text'])
+                : $messages->image($data['user_id'], $attachment, $data['text']);
+        } catch (ApiException $e) {
+            return back()->with('zalo.error', $this->explain($e));
+        } catch (ZaloException $e) {
+            return back()->with('zalo.error', $e->getMessage());
+        }
+
+        return back()->with(
+            'zalo.success',
+            'Zalo đã nhận. Mở Zalo kiểm tra tin đã tới thật chưa — API báo ok không đảm bảo máy người nhận hiện được tin.'
+        );
+    }
+
+    /**
+     * Dịch mã lỗi hay gặp sang câu người đọc hiểu được.
+     *
+     * Zalo trả những câu như "User is not in whitelist" mà không nói phải làm
+     * gì. Với tin tư vấn thì nguyên nhân gần như luôn là cửa sổ 48 giờ.
+     */
+    private function explain(ApiException $e): string
+    {
+        $hint = match ($e->errorCode) {
+            -216, -217, -32, -124 => ' Token hết hạn hoặc bị thu hồi — bấm Cấp lại quyền.',
+            -230, -231 => ' Người này chưa nhắn cho OA trong 48 giờ qua, nên chỉ gửi được tin giao dịch hoặc truyền thông.',
+            -201 => ' Sai user_id, hoặc người này chưa từng tương tác với OA.',
+            default => '',
+        };
+
+        return "Zalo từ chối — mã {$e->errorCode}: {$e->getMessage()}.".$hint;
     }
 
     public function test(ZaloOa $oa, Factory $zalo): RedirectResponse

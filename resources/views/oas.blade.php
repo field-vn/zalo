@@ -23,13 +23,15 @@
                 @foreach ($oas as $oa)
                     <tr>
                         <td>
-                            <strong>{{ $oa->name }}</strong>
+                            <a href="{{ route('zalo.oas.show', $oa) }}"><strong>{{ $oa->name }}</strong></a>
                             <div class="zl-hint zl-mono">{{ $oa->slug }}</div>
                         </td>
                         <td class="zl-mono">{{ $oa->oa_id }}</td>
                         <td>{!! $statusBadge($oa) !!}</td>
                         <td>
                             <div class="zl-actions">
+                                <a href="{{ route('zalo.oas.show', $oa) }}" class="zl-btn">Chi tiết</a>
+
                                 <a href="{{ route('zalo.oa.authorize', $oa) }}" class="zl-btn zl-btn-primary">
                                     {{ $oa->token === null ? 'Cấp quyền' : 'Cấp lại' }}
                                 </a>

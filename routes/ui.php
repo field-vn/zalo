@@ -19,12 +19,20 @@ Route::get('/', DashboardController::class)->name('zalo.dashboard');
 
 Route::get('oas', [OaController::class, 'index'])->name('zalo.oas.index');
 Route::post('oas', [OaController::class, 'store'])->name('zalo.oas.store');
+Route::get('oas/{oa}', [OaController::class, 'show'])->name('zalo.oas.show');
+Route::put('oas/{oa}', [OaController::class, 'update'])->name('zalo.oas.update');
+Route::post('oas/{oa}/send', [OaController::class, 'send'])->name('zalo.oas.send');
 Route::post('oas/{oa}/test', [OaController::class, 'test'])->name('zalo.oas.test');
 Route::post('oas/{oa}/toggle', [OaController::class, 'toggle'])->name('zalo.oas.toggle');
 Route::delete('oas/{oa}', [OaController::class, 'destroy'])->name('zalo.oas.destroy');
 
 Route::get('bots', [BotController::class, 'index'])->name('zalo.bots.index');
 Route::post('bots', [BotController::class, 'store'])->name('zalo.bots.store');
+Route::get('bots/{bot}', [BotController::class, 'show'])->name('zalo.bots.show');
+Route::put('bots/{bot}', [BotController::class, 'update'])->name('zalo.bots.update');
+Route::post('bots/{bot}/send', [BotController::class, 'send'])->name('zalo.bots.send');
+Route::post('bots/{bot}/webhook', [BotController::class, 'setWebhook'])->name('zalo.bots.webhook.set');
+Route::delete('bots/{bot}/webhook', [BotController::class, 'deleteWebhook'])->name('zalo.bots.webhook.delete');
 Route::post('bots/{bot}/test', [BotController::class, 'test'])->name('zalo.bots.test');
 Route::post('bots/{bot}/toggle', [BotController::class, 'toggle'])->name('zalo.bots.toggle');
 Route::delete('bots/{bot}', [BotController::class, 'destroy'])->name('zalo.bots.destroy');

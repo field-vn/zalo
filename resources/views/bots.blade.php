@@ -27,7 +27,7 @@
                 @foreach ($bots as $bot)
                     <tr>
                         <td>
-                            <strong>{{ $bot->name }}</strong>
+                            <a href="{{ route('zalo.bots.show', $bot) }}"><strong>{{ $bot->name }}</strong></a>
                             <div class="zl-hint zl-mono">{{ $bot->slug }}</div>
                         </td>
                         <td>{{ $bot->username !== null ? '@'.$bot->username : '—' }}</td>
@@ -42,6 +42,8 @@
                         </td>
                         <td>
                             <div class="zl-actions">
+                                <a href="{{ route('zalo.bots.show', $bot) }}" class="zl-btn">Chi tiết</a>
+
                                 <form method="POST" action="{{ route('zalo.bots.test', $bot) }}">
                                     @csrf
                                     <button class="zl-btn">Kiểm tra</button>
