@@ -52,24 +52,35 @@ class BotChatsCommand extends Command
             return $this->explainEmpty($slug);
         }
 
+        $rows = [];
+        $hint = '<slug> <chat_id>';
+
+        foreach ($chats as $chat) {
+            // FK cascadeOnDelete: xoá bot là xoá luôn chat, nên quan hệ này
+            // không bao giờ rỗng.
+            $botSlug = $chat->bot->slug;
+
+            if ($rows === []) {
+                $hint = $botSlug.' '.$chat->chat_id;
+            }
+
+            $rows[] = [
+                $botSlug,
+                $chat->chat_id,
+                mb_strimwidth((string) ($chat->display_name ?? '—'), 0, 20, '…'),
+                (string) $chat->message_count,
+                $chat->last_message_at?->format('d/m H:i') ?? '—',
+                mb_strimwidth((string) ($chat->last_message ?? '—'), 0, 30, '…'),
+            ];
+        }
+
         $this->newLine();
         $this->table(
             ['Bot', 'chat_id', 'Tên', 'Số tin', 'Nhắn lần cuối', 'Nội dung cuối'],
-            $chats->map(fn (ZaloBotChat $c): array => [
-                $c->bot?->slug ?? '—',
-                $c->chat_id,
-                mb_strimwidth((string) ($c->display_name ?? '—'), 0, 20, '…'),
-                (string) $c->message_count,
-                $c->last_message_at?->format('d/m H:i') ?? '—',
-                mb_strimwidth((string) ($c->last_message ?? '—'), 0, 30, '…'),
-            ])->all(),
+            $rows,
         );
-
-        $first = $chats->first();
         $this->newLine();
-        $this->line('  Gửi thử: <comment>php artisan zalo:bot:send '
-            .($first?->bot?->slug ?? '<slug>').' '.($first?->chat_id ?? '<chat_id>')
-            .' "Xin chào"</comment>');
+        $this->line('  Gửi thử: <comment>php artisan zalo:bot:send '.$hint.' "Xin chào"</comment>');
         $this->newLine();
 
         return self::SUCCESS;
