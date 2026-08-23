@@ -37,7 +37,9 @@ class BotTestCommand extends Command
 
         $this->line('  <fg=green>✓</> Token còn dùng được');
         $this->line('     Tên       '.($data['first_name'] ?? $data['name'] ?? '—'));
-        $this->line('     Username  '.(isset($data['username']) ? '@'.$data['username'] : '—'));
+        $name = $data['username'] ?? $data['account_name'] ?? null;
+        $this->line('     Username  '.($name !== null ? '@'.$name : '—'));
+        $this->line('     Tên hiển thị  '.($data['display_name'] ?? '—'));
         $this->newLine();
 
         return self::SUCCESS;

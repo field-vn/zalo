@@ -56,8 +56,12 @@ class BotController
         /** @var array<string, mixed> $payload */
         $payload = (array) $info->payload();
 
-        if (isset($payload['username'])) {
-            $bot->forceFill(['username' => (string) $payload['username']])->save();
+        // getMe trả `account_name` (vd bot.lgevMLAT). Giữ cả `username` phòng
+        // khi Zalo đổi tên trường — đây là API chưa ổn định.
+        $name = $payload['username'] ?? $payload['account_name'] ?? null;
+
+        if ($name !== null) {
+            $bot->forceFill(['username' => (string) $name])->save();
         }
 
         ZaloAuditLog::record('bot.created', $bot);

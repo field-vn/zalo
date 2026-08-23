@@ -97,8 +97,10 @@ class BotAddCommand extends Command
         /** @var array<string, mixed> $data */
         $data = (array) $info->payload();
 
-        if (isset($data['username'])) {
-            $bot->forceFill(['username' => (string) $data['username']])->save();
+        $name = $data['username'] ?? $data['account_name'] ?? null;
+
+        if ($name !== null) {
+            $bot->forceFill(['username' => (string) $name])->save();
         }
 
         $this->done($bot);
