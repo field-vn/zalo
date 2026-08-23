@@ -26,9 +26,20 @@ final class Response implements ArrayAccess
 
     public function successful(): bool
     {
-        return $this->status >= 200
-            && $this->status < 300
-            && $this->errorCode() === 0;
+        if ($this->status < 200 || $this->status >= 300) {
+            return false;
+        }
+
+        // Hai kênh dùng hai quy ước khác nhau và KHÔNG thể gộp:
+        //   OA  -> {"error": 0, "message": "Success", "data": {...}}
+        //   Bot -> {"ok": true, "result": {...}}
+        // Chỉ xét `error` thì lỗi của Bot (ok=false, không có `error`) lọt
+        // qua thành công — sendMessage hỏng mà code vẫn tưởng đã gửi.
+        if (array_key_exists('ok', $this->data)) {
+            return (bool) $this->data['ok'];
+        }
+
+        return $this->errorCode() === 0;
     }
 
     public function failed(): bool
@@ -38,12 +49,17 @@ final class Response implements ArrayAccess
 
     public function errorCode(): int
     {
-        return (int) ($this->data['error'] ?? 0);
+        return (int) ($this->data['error'] ?? $this->data['error_code'] ?? 0);
     }
 
     public function errorMessage(): string
     {
-        return (string) ($this->data['message'] ?? $this->data['error_name'] ?? '');
+        return (string) (
+            $this->data['message']
+            ?? $this->data['description']
+            ?? $this->data['error_name']
+            ?? ''
+        );
     }
 
     /** Nội dung nghiệp vụ nằm trong `data`; fallback về toàn bộ body. */
