@@ -11,8 +11,11 @@ use FieldVn\Zalo\Contracts\Transport;
 use FieldVn\Zalo\Core\Http\GuzzleTransport;
 use FieldVn\Zalo\Laravel\Console\AuthorizeCommand;
 use FieldVn\Zalo\Laravel\Console\BotAddCommand;
+use FieldVn\Zalo\Laravel\Console\BotChatsCommand;
 use FieldVn\Zalo\Laravel\Console\BotListCommand;
+use FieldVn\Zalo\Laravel\Console\BotSendCommand;
 use FieldVn\Zalo\Laravel\Console\BotTestCommand;
+use FieldVn\Zalo\Laravel\Console\BotWebhookCommand;
 use FieldVn\Zalo\Laravel\Console\DoctorCommand;
 use FieldVn\Zalo\Laravel\Console\InstallCommand;
 use FieldVn\Zalo\Laravel\Console\OaAddCommand;
@@ -117,6 +120,9 @@ class ZaloServiceProvider extends ServiceProvider
                 BotAddCommand::class,
                 BotListCommand::class,
                 BotTestCommand::class,
+                BotSendCommand::class,
+                BotChatsCommand::class,
+                BotWebhookCommand::class,
             ]);
         }
     }

@@ -6,6 +6,7 @@ namespace FieldVn\Zalo\Laravel\Console;
 
 use FieldVn\Zalo\Contracts\BotRepository;
 use FieldVn\Zalo\Contracts\OaRepository;
+use FieldVn\Zalo\Core\Webhook\BotSecretVerifier;
 use FieldVn\Zalo\Laravel\Managers\ZaloManager;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
 use FieldVn\Zalo\Laravel\Support\OaPresenter;
@@ -244,7 +245,42 @@ class DoctorCommand extends Command
                 : $this->warn2("Bot `{$bot->slug}` đã tắt");
         }
 
-        $this->info2('Kiểm tra token bot: php artisan zalo:bot:test <slug>');
+        $this->checkBotWebhookSecret();
+
+        $this->info2('Gửi tin thật: php artisan zalo:bot:send <slug> <chat_id> "test"');
+    }
+
+    /**
+     * Chỉ kiểm khi thực sự có bot — dự án chỉ dùng OA không cần biến này.
+     *
+     * Secret của Bot KHÁC secret của OA: OA Secret Key do Zalo cấp, còn cái
+     * này do mình tự đặt và Zalo gửi trả nguyên văn ở header. Nhầm hai cái là
+     * lỗi hay gặp nhất, nên nói rõ ngay tại đây.
+     */
+    private function checkBotWebhookSecret(): void
+    {
+        $secret = (string) config('zalo.bot.webhook_secret', '');
+
+        if ($secret === '') {
+            $this->bad(
+                'Thiếu ZALO_BOT_WEBHOOK_SECRET — webhook bot bị từ chối toàn bộ (fail-closed)',
+                'Thêm vào .env: ZALO_BOT_WEBHOOK_SECRET='.BotSecretVerifier::generate(),
+            );
+
+            return;
+        }
+
+        if (! BotSecretVerifier::isValidLength($secret)) {
+            $this->bad(
+                'ZALO_BOT_WEBHOOK_SECRET dài '.strlen($secret).' ký tự — Zalo yêu cầu '
+                    .BotSecretVerifier::MIN_LENGTH.'-'.BotSecretVerifier::MAX_LENGTH,
+                'Thay bằng: '.BotSecretVerifier::generate(),
+            );
+
+            return;
+        }
+
+        $this->ok('ZALO_BOT_WEBHOOK_SECRET hợp lệ (khác OA Secret Key — đúng như thiết kế)');
     }
 
     // ── helper hiển thị ──────────────────────────────────────────────────

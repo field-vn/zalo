@@ -18,6 +18,8 @@ final class Table
 
     public const BOTS = 'bots';
 
+    public const BOT_CHATS = 'bot_chats';
+
     public const AUDIT_LOGS = 'audit_logs';
 
     public const WEBHOOK_LOGS = 'webhook_logs';
@@ -27,6 +29,7 @@ final class Table
         self::OAS,
         self::OA_TOKENS,
         self::BOTS,
+        self::BOT_CHATS,
         self::AUDIT_LOGS,
         self::WEBHOOK_LOGS,
     ];

@@ -76,27 +76,32 @@ it('setWebhook LUÔN gửi secret_token', function (): void {
     $t = new FakeTransport;
     $t->push(['ok' => true, 'result' => true]);
 
-    botWith($t)->updates()->setWebhook('https://x.test/zalo/webhook', 'bi-mat');
+    botWith($t)->updates()->setWebhook('https://x.test/zalo/webhook', 'bi-mat-du-dai-32-ky-tu-abcdef');
 
     $req = $t->lastRequest();
 
     expect($req['url'])->toBe('https://bot-api.zapps.me/botTOKEN123/setWebhook')
         ->and($req['data'])->toBe([
             'url' => 'https://x.test/zalo/webhook',
-            'secret_token' => 'bi-mat',
+            'secret_token' => 'bi-mat-du-dai-32-ky-tu-abcdef',
         ]);
 });
 
-it('setWebhook chặn secret rỗng ngay tại chỗ, không gọi mạng', function (): void {
-    // Zalo trả "The secret_token must not be empty" — thông báo không cho
-    // biết phải đặt biến env nào, nên chặn sớm với hướng dẫn cụ thể.
+it('setWebhook chặn secret rỗng hoặc quá ngắn, không gọi mạng', function (string $secret): void {
+    // Zalo trả "The secret_token must not be empty" / từ chối độ dài — cả hai
+    // thông báo đều không nói phải đặt biến env nào, nên chặn sớm tại chỗ.
     $t = new FakeTransport;
 
-    expect(fn () => botWith($t)->updates()->setWebhook('https://x.test/hook', '   '))
+    expect(fn () => botWith($t)->updates()->setWebhook('https://x.test/hook', $secret))
         ->toThrow(ConfigurationException::class);
 
     expect($t->requests)->toBeEmpty();
-});
+})->with([
+    'rỗng' => '',
+    'toàn khoảng trắng' => '        ',
+    'ngắn hơn 8' => 'abc123',
+    'dài hơn 256' => [str_repeat('a', 257)],
+]);
 
 it('ping() trả false khi Zalo báo ok=false chứ không ném ra ngoài', function (): void {
     $t = new FakeTransport;
