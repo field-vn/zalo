@@ -51,6 +51,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Zalo Bot
+    |--------------------------------------------------------------------------
+    |
+    | KHÁC HẲN webhook secret của OA:
+    |   - OA:  Zalo CẤP cho bạn, dùng để tính X-ZEvent-Signature
+    |   - Bot: bạn TỰ ĐẶT, Zalo gửi trả lại nguyên văn ở header mỗi lần gọi
+    |
+    | Zalo BẮT BUỘC phải có giá trị này khi gọi setWebhook — để rỗng thì bị
+    | từ chối với "Bad request: The secret_token must not be empty".
+    |
+    | Sinh một chuỗi ngẫu nhiên đủ dài, ví dụ:
+    |   php -r "echo bin2hex(random_bytes(24));"
+    |
+    */
+
+    'bot' => [
+        'webhook_secret' => env('ZALO_BOT_WEBHOOK_SECRET'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Endpoint
     |--------------------------------------------------------------------------
     */
