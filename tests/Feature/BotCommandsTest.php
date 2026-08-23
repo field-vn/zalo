@@ -5,6 +5,13 @@ declare(strict_types=1);
 use FieldVn\Zalo\Contracts\Transport;
 use FieldVn\Zalo\Laravel\Models\ZaloBot;
 use FieldVn\Zalo\Tests\Support\FakeTransport;
+/*
+| Fake phải trả ĐÚNG hình dạng body của Bot API: {"ok":..., "result":...}.
+| Trước đây fake dùng {"data":...} kiểu OA nên test xanh mà thực tế mọi lời
+| gọi Bot đều hỏng — fake bịa ra một API không tồn tại thì test không chứng
+| minh được gì.
+*/
+
 
 function botTransport(): FakeTransport
 {
@@ -15,7 +22,7 @@ function botTransport(): FakeTransport
 }
 
 it('thêm bot và tự điền username từ getMe', function (): void {
-    botTransport()->push(['data' => ['username' => 'abc_support_bot']]);
+    botTransport()->push(['ok' => true, 'result' => ['username' => 'abc_support_bot']]);
 
     $this->artisan('zalo:bot:add', [
         '--name' => 'Support',
@@ -34,7 +41,7 @@ it('thêm bot và tự điền username từ getMe', function (): void {
 it('XOÁ bot vừa tạo khi token không dùng được', function (): void {
     // Giữ lại bản ghi hỏng chỉ làm zalo:bot:list nhiễu và khiến người dùng
     // tưởng đã thêm thành công.
-    botTransport()->push(['error' => -32, 'message' => 'Token không hợp lệ']);
+    botTransport()->push(['ok' => false, 'error_code' => 401, 'description' => 'Token không hợp lệ']);
 
     $this->artisan('zalo:bot:add', [
         '--name' => 'Support',
@@ -87,14 +94,14 @@ it('che token đúng định dạng', function (): void {
 });
 
 it('bot:test báo lỗi khi token hỏng', function (): void {
-    botTransport()->push(['error' => -32, 'message' => 'Token không hợp lệ']);
+    botTransport()->push(['ok' => false, 'error_code' => 401, 'description' => 'Token không hợp lệ']);
     ZaloBot::create(['name' => 'Support', 'slug' => 'support', 'token' => 'x']);
 
     $this->artisan('zalo:bot:test', ['bot' => 'support'])->assertFailed();
 });
 
 it('bot:test thành công khi token còn dùng được', function (): void {
-    botTransport()->push(['data' => ['username' => 'abc_support_bot']]);
+    botTransport()->push(['ok' => true, 'result' => ['username' => 'abc_support_bot']]);
     ZaloBot::create(['name' => 'Support', 'slug' => 'support', 'token' => 'x']);
 
     $this->artisan('zalo:bot:test', ['bot' => 'support'])->assertSuccessful();

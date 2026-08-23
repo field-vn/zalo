@@ -62,10 +62,15 @@ final class BotChannel implements Channel
 
     public function request(): PendingRequest
     {
-        // Token nằm trong path chứ không phải header.
+        // Token nằm trong path chứ không phải header, và DÍNH LIỀN chữ "bot"
+        // giống Telegram: https://bot-api.zapps.me/bot<token>/getMe
+        //
+        // Thêm dấu `/` vào giữa sẽ ra .../bot/<token>/getMe và Zalo trả
+        // HTTP 200 kèm {"ok":false,"description":"Not Found","error_code":404}
+        // — mọi lời gọi Bot đều hỏng.
         return new PendingRequest(
             $this->transport,
-            rtrim($this->baseUrl, '/').'/'.$this->token,
+            rtrim($this->baseUrl, '/').$this->token,
             static fn (): array => [],
         );
     }

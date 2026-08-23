@@ -31,9 +31,13 @@ class ApiException extends ZaloException
         );
     }
 
-    /** Token hết hạn hoặc bị thu hồi — cần refresh hoặc authorize lại. */
+    /**
+     * Token hết hạn hoặc bị thu hồi — cần refresh hoặc authorize lại.
+     *
+     * Âm là mã của OA; 401 là của Bot API (quy ước HTTP, không phải mã Zalo).
+     */
     public function isTokenError(): bool
     {
-        return in_array($this->errorCode, [-216, -217, -32, -124], true);
+        return in_array($this->errorCode, [-216, -217, -32, -124, 401], true);
     }
 }

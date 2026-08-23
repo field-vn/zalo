@@ -8,6 +8,13 @@ use FieldVn\Zalo\Laravel\Models\ZaloOa;
 use FieldVn\Zalo\Laravel\Models\ZaloOaToken;
 use FieldVn\Zalo\Tests\Support\FakeTransport;
 use Illuminate\Testing\TestResponse;
+/*
+| Fake phải trả ĐÚNG hình dạng body của Bot API: {"ok":..., "result":...}.
+| Trước đây fake dùng {"data":...} kiểu OA nên test xanh mà thực tế mọi lời
+| gọi Bot đều hỏng — fake bịa ra một API không tồn tại thì test không chứng
+| minh được gì.
+*/
+
 
 beforeEach(function (): void {
     config()->set('zalo.ui.user', 'admin');
@@ -175,7 +182,7 @@ it('URL sinh ra từ route() dùng slug, không dùng id', function (): void {
 
 it('nút trên trang bot bấm được, không 404', function (): void {
     // Đi đúng đường người dùng đi: lấy URL y như Blade sinh ra.
-    uiTransport()->push(['data' => ['username' => 'abc_bot']]);
+    uiTransport()->push(['ok' => true, 'result' => ['username' => 'abc_bot']]);
 
     $bot = ZaloBot::create(['name' => 'Support', 'slug' => 'support', 'token' => '1:a']);
 
@@ -193,7 +200,7 @@ it('nút trên trang OA bấm được, không 404', function (): void {
 });
 
 it('thêm bot và tự điền username', function (): void {
-    uiTransport()->push(['data' => ['username' => 'abc_bot']]);
+    uiTransport()->push(['ok' => true, 'result' => ['username' => 'abc_bot']]);
 
     $this->withHeaders(['Authorization' => 'Basic '.base64_encode('admin:secret')])
         ->post('/zalo/bots', ['name' => 'Support', 'slug' => 'support', 'token' => '123:abc'])
@@ -204,7 +211,7 @@ it('thêm bot và tự điền username', function (): void {
 });
 
 it('KHÔNG lưu bot khi token hỏng', function (): void {
-    uiTransport()->push(['error' => -32, 'message' => 'Token không hợp lệ']);
+    uiTransport()->push(['ok' => false, 'error_code' => 401, 'description' => 'Token không hợp lệ']);
 
     $this->withHeaders(['Authorization' => 'Basic '.base64_encode('admin:secret')])
         ->post('/zalo/bots', ['name' => 'Support', 'slug' => 'support', 'token' => 'sai'])
