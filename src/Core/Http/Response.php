@@ -62,10 +62,16 @@ final class Response implements ArrayAccess
         );
     }
 
-    /** Nội dung nghiệp vụ nằm trong `data`; fallback về toàn bộ body. */
+    /**
+     * Nội dung nghiệp vụ: OA bọc trong `data`, Bot bọc trong `result`.
+     *
+     * Thiếu nhánh `result` thì mọi thứ đọc từ Bot đều rỗng — ví dụ username
+     * của getMe không bao giờ lưu được vì code đi tìm $payload['username']
+     * trong khi nó nằm ở $body['result']['username'].
+     */
     public function payload(): mixed
     {
-        return $this->data['data'] ?? $this->data;
+        return $this->data['data'] ?? $this->data['result'] ?? $this->data;
     }
 
     public function get(string $key, mixed $default = null): mixed

@@ -49,6 +49,20 @@ it('BOT: throwIfFailed ném exception khi ok = false', function (): void {
     expect(fn () => $r->throwIfFailed())->toThrow(ApiException::class);
 });
 
+it('BOT: payload() bóc `result` như OA bóc `data`', function (): void {
+    // Thiếu nhánh này thì getMe của Bot trả về nguyên body, code đi tìm
+    // $payload['username'] không thấy gì và username không bao giờ được lưu.
+    $r = new Response(200, ['ok' => true, 'result' => ['username' => 'dls_dongnai_bot']]);
+
+    expect($r->payload())->toBe(['username' => 'dls_dongnai_bot']);
+});
+
+it('OA `data` được ưu tiên hơn `result`', function (): void {
+    $r = new Response(200, ['error' => 0, 'data' => ['x' => 1], 'result' => ['y' => 2]]);
+
+    expect($r->payload())->toBe(['x' => 1]);
+});
+
 it('HTTP 5xx luôn là thất bại kể cả body rỗng', function (): void {
     expect((new Response(502))->successful())->toBeFalse();
 });
