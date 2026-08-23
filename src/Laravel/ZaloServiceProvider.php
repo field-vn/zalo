@@ -30,6 +30,7 @@ use FieldVn\Zalo\Laravel\Models\ZaloOa;
 use FieldVn\Zalo\Laravel\Repositories\EloquentBotRepository;
 use FieldVn\Zalo\Laravel\Repositories\EloquentOaRepository;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -158,10 +159,16 @@ class ZaloServiceProvider extends ServiceProvider
             return;
         }
 
-        // Không middleware: Zalo gọi vào, không có session và không có CSRF
-        // token. Chữ ký X-ZEvent-Signature là lớp bảo vệ duy nhất và đủ.
+        // KHÔNG dùng nhóm `web`: Zalo gọi vào, không có session và không có
+        // CSRF token. Chữ ký (OA) hoặc secret header (Bot) là lớp bảo vệ duy
+        // nhất và đủ.
+        //
+        // Nhưng vẫn PHẢI có SubstituteBindings, nếu không Route::bind('bot')
+        // không chạy và controller nhận một ZaloBot rỗng do container tự dựng
+        // thay vì bot thật — mọi update ghi vào bot_id null.
         Route::group([
             'prefix' => (string) config('zalo.webhook.path', 'zalo/webhook'),
+            'middleware' => [SubstituteBindings::class],
         ], function (): void {
             $this->loadRoutesFrom(__DIR__.'/../../routes/webhook.php');
         });
