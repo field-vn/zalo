@@ -298,14 +298,18 @@ it('gửi tin thử qua OA dùng endpoint tin tư vấn', function (): void {
     expect($fake->lastRequest()['url'])->toEndWith('/v3.0/oa/message/cs');
 });
 
-it('GIẢI THÍCH cửa sổ 48 giờ khi Zalo trả mã -230', function (): void {
+it('GIẢI THÍCH hạn 7 ngày khi Zalo trả mã -230', function (): void {
     // "User is not in whitelist" không nói được cho ai biết phải làm gì.
+    //
+    // Test này từng assert "48 giờ" và đã sai cùng với code: 48 giờ là hạn
+    // MIỄN PHÍ, còn 7 ngày mới là hạn gửi được qua OpenAPI. Nói nhầm hai cái
+    // khiến người dùng tưởng mình bị chặn trong khi thực ra đang bị tính tiền.
     fakeNet()->push(['error' => -230, 'message' => 'User is not in whitelist']);
     $oa = anOa();
 
     test()->withHeaders(auth2())
         ->post(route('zalo.oas.send', $oa), ['user_id' => 'u-1', 'text' => 'chào'])
-        ->assertSessionHas('zalo.error', fn (string $m): bool => str_contains($m, '48 giờ'));
+        ->assertSessionHas('zalo.error', fn (string $m): bool => str_contains($m, '7 ngày'));
 });
 
 it('gửi kèm attachment_id thì dùng media template', function (): void {

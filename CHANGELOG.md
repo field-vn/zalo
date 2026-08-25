@@ -10,6 +10,12 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+Chưa có thay đổi nào sau v0.1.0.
+
+## [0.1.0] — 2026-08-25
+
+Bản phát hành đầu tiên.
+
 ### Official Account
 
 - Quản lý nhiều OA qua `Zalo::oa()`, chọn theo slug hoặc id
@@ -84,3 +90,6 @@ vì chúng cho thấy chỗ nào của Zalo API dễ hiểu sai:
 Một phần **OA API** vẫn dựa trên tài liệu chứ chưa gọi thật. Xem mục
 "Những gì chưa được xác minh" trong README. Đáng ngờ nhất là
 `ImageMessage::url()` — nhiều khả năng chỉ Bot mới nhận URL ảnh.
+
+[Unreleased]: https://github.com/field-vn/zalo/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/field-vn/zalo/releases/tag/v0.1.0
