@@ -47,11 +47,11 @@ final class BotChannel implements Channel
     }
 
     /*
-    | Đường tắt.
+    | Đường tắt gửi tin.
     |
-    | Bot CỐ Ý không có message object như OA: nó không có nút, không có
-    | list, không có gì để kết hợp — bọc thêm một lớp object chỉ là nghi thức
-    | thừa. OA cần object vì tin có thể ghép nút, ảnh, chú thích với nhau.
+    | Bot không có message object như OA vì nội dung của nó không kết hợp
+    | được: không nút bấm, không list. OA cần object để ghép nút, ảnh và
+    | chú thích trong cùng một tin.
     */
 
     public function text(string $chatId, string $text): Response

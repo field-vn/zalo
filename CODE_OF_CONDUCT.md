@@ -6,10 +6,7 @@ Dự án này mở cửa cho tất cả mọi người, không phân biệt tu�
 khuyết tật, sắc tộc, giới tính, trình độ kinh nghiệm, quốc tịch, tôn giáo hay
 xu hướng tính dục.
 
-Phần lớn người dùng package này là lập trình viên Việt Nam, nhiều người mới
-vào nghề, và tài liệu của Zalo thì không đầy đủ. **Câu hỏi cơ bản không phải
-là câu hỏi ngớ ngẩn** — nếu ai đó hỏi một điều mà tài liệu đã nói, thì thường
-là tài liệu của chúng ta viết chưa rõ.
+Câu hỏi cơ bản luôn được hoan nghênh.
 
 ## Được hoan nghênh
 
@@ -26,14 +23,12 @@ là tài liệu của chúng ta viết chưa rõ.
 - Đăng thông tin cá nhân của người khác khi chưa được phép
 - Nội dung tình dục hoặc bạo lực
 
-## Riêng với dự án này: dữ liệu người dùng
+## Dữ liệu người dùng
 
-Issue và PR của package này rất hay kèm payload thật từ Zalo. **Luôn xoá
-`user_id`, `chat_id`, số điện thoại, tên thật và nội dung tin nhắn** trước khi
-dán lên chỗ công khai.
+Issue và PR thường kèm payload thật từ Zalo. Luôn xoá `user_id`, `chat_id`,
+số điện thoại, tên thật và nội dung tin nhắn trước khi dán lên chỗ công khai.
 
-Vô ý dán lộ thì không sao — báo cho maintainer, chúng tôi sẽ xoá. Cố tình đăng
-dữ liệu người khác thì không.
+Nếu lỡ dán lộ, báo cho maintainer để được xoá.
 
 ## Báo cáo
 

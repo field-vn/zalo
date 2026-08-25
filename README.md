@@ -5,84 +5,22 @@
 [![Downloads](https://img.shields.io/packagist/dt/field-vn/zalo.svg)](https://packagist.org/packages/field-vn/zalo)
 [![License](https://img.shields.io/packagist/l/field-vn/zalo.svg)](LICENSE)
 
-SDK Laravel cho **Zalo Official Account** và **Zalo Bot**. Quản lý nhiều OA, tự refresh token, webhook cho cả hai kênh, kèm UI cấu hình không cần build step.
-
-> ⚠️ **Đang phát triển (0.x)** — API còn có thể thay đổi giữa các bản minor. Xem [Những gì chưa được xác minh](#những-gì-chưa-được-xác-minh) trước khi đưa vào production.
+SDK Laravel cho **Zalo Official Account** và **Zalo Bot**: quản lý nhiều OA, tự refresh token, nhận webhook, kèm giao diện cấu hình.
 
 ## Mục lục
 
-- [Vì sao dùng package này](#vì-sao-dùng-package-này)
-- [OA và Bot khác nhau thế nào](#oa-và-bot-khác-nhau-thế-nào)
+- [Yêu cầu](#yêu-cầu)
 - [Cài đặt](#cài-đặt)
-- [Kết nối OA đầu tiên](#kết-nối-oa-đầu-tiên)
-- [Kết nối Bot đầu tiên](#kết-nối-bot-đầu-tiên)
+- [Kết nối Official Account](#kết-nối-official-account)
+- [Kết nối Bot](#kết-nối-bot)
 - [Gửi tin nhắn](#gửi-tin-nhắn)
-- [Nhận tin nhắn](#nhận-tin-nhắn-webhook)
+- [Nhận tin nhắn](#nhận-tin-nhắn)
+- [Chi phí và giới hạn](#chi-phí-và-giới-hạn)
 - [Cấu hình](#cấu-hình)
 - [Giao diện web](#giao-diện-web)
 - [Commands](#commands)
-- [Testing dự án của bạn](#testing-dự-án-của-bạn)
-- [Điểm mở rộng](#điểm-mở-rộng)
-- [Những gì chưa được xác minh](#những-gì-chưa-được-xác-minh)
-
-## Vì sao dùng package này
-
-- **Nhiều OA trong một app** — `Zalo::oa('cskh')`, `Zalo::oa('marketing')`
-- **Token tự refresh**, kể cả việc *xoay* `refresh_token` trước khi nó hết hạn — thứ khiến hầu hết tích hợp Zalo tự viết chết sau ba tháng, im lặng
-- **Webhook cho cả OA lẫn Bot**, mỗi bên đúng cơ chế xác thực của nó, fail-closed
-- **`chat_id` của Bot tự lưu lại** — Zalo không có API nào liệt kê, và `getUpdates` chỉ đọc được một lần
-- **Message là object**, IDE gợi ý được, payload validate trước khi bắn đi
-- **`zalo:doctor`** chẩn đoán cấu hình và chỉ thẳng cách sửa
-
-## OA và Bot khác nhau thế nào
-
-Đây là thứ nên đọc trước khi chọn kênh. Hai bên **không** tương đương, và package cố ý không giả vờ rằng chúng tương đương.
-
-| | Zalo Bot | Zalo OA |
-|---|---|---|
-| Lấy đâu ra | [bot.zaloplatforms.com](https://bot.zaloplatforms.com) | Zalo Developers + OAuth |
-| Xác thực | Token tĩnh | OAuth, token hết hạn 1 giờ, refresh xoay vòng |
-| Text | ✅ | ✅ |
-| Ảnh | ✅ nhận thẳng URL | ✅ nhưng **phải upload trước** lấy `attachment_id` |
-| Sticker | ✅ | ❌ |
-| "Đang soạn tin" | ✅ | ❌ |
-| **Nút bấm** | ❌ | ✅ |
-| **List / carousel** | ❌ | ✅ |
-| Giới hạn thời gian | không | tin Tư vấn: **7 ngày** kể từ tương tác cuối, miễn phí trong 48 giờ đầu |
-| Xác thực webhook | secret nguyên văn ở header | chữ ký HMAC |
-
-Bot đúng nghĩa là Telegram rút gọn. Vì Bot không có nút bấm và không có gì để kết hợp, package **không** tạo message object cho Bot — thêm một lớp object vào đó chỉ là nghi thức thừa và làm người đọc tưởng hai kênh dùng lẫn nhau được.
-
-Một khác biệt nữa dễ vấp: ở OA, *loại tin* và *định dạng nội dung* là hai trục độc lập.
-
-```
-Trục 1 — GỬI KIỂU GÌ (chỉ OA)        Trục 2 — NỘI DUNG LÀ GÌ
-  /message/cs         tin Tư vấn        text, text + nút, ảnh,
-  ZBS Template        theo mẫu           file, sticker, list
-```
-
-### 48 giờ KHÔNG phải giới hạn gửi — nó là giới hạn miễn phí
-
-Chỗ này rất hay bị hiểu sai, và hiểu sai thì mất tiền thật:
-
-| Kể từ tương tác cuối của người dùng | Qua OpenAPI |
-|---|---|
-| trong **48 giờ** | gửi được, **miễn phí** |
-| 48 giờ → **7 ngày** | vẫn gửi được, **Zalo tính phí** |
-| sau 7 ngày | bị từ chối |
-
-Code gọi `messages()->text()` ngoài khung 48 giờ vẫn chạy trơn tru và vẫn phát
-sinh tiền. Package **không** tự chặn, vì nó không biết được thời điểm tương tác
-cuối — chỉ Zalo biết. Muốn kiểm soát chi phí thì tự lưu mốc tương tác từ webhook.
-
-"Tương tác" cũng rộng hơn "nhắn tin": còn gồm gọi thoại tới OA, bình luận bài
-viết, bấm Menu hoặc CTA, tương tác với chatbot, bấm widget.
-
-> **ZBS Template Message thay thế ZNS.** Từ **01/01/2026** Zalo hợp nhất ZNS,
-> tin UID Giao dịch và tin UID Truyền thông thành một giải pháp duy nhất là
-> **ZBS Template Message** (gồm Tin Giao dịch và Tin Hậu mãi), gửi được qua UID
-> hoặc qua số điện thoại. Package **chưa hỗ trợ** — xem
-> [Những gì chưa được xác minh](#những-gì-chưa-được-xác-minh).
+- [Testing](#testing)
+- [Mở rộng](#mở-rộng)
 
 ## Yêu cầu
 
@@ -95,85 +33,105 @@ viết, bấm Menu hoặc CTA, tương tác với chatbot, bấm widget.
 composer require field-vn/zalo
 ```
 
+Thêm credential của Zalo App vào `.env`:
+
 ```dotenv
 ZALO_APP_ID=
 ZALO_APP_SECRET=
 ```
 
+Chạy trình cài đặt:
+
 ```bash
 php artisan zalo:install
 ```
 
-Lệnh này kiểm tra env, publish config, migrate, và cảnh báo những thứ dễ quên: cron cho scheduler, credential cho UI, HTTPS.
+Lệnh này kiểm tra env, publish config, chạy migration và nhắc các bước còn thiếu.
 
-> **Xác thực domain trước.** Zalo chỉ chấp nhận URL thuộc domain đã xác thực. Chưa làm bước này thì webhook báo *"chưa được xác thực domain"* và OAuth trả `-14003 Invalid redirect uri` — cùng một nguyên nhân. Vào Zalo Developers → App → Xác thực domain, tải file HTML họ cấp, đặt vào `public/`.
+### Xác thực domain
 
-## Kết nối OA đầu tiên
+Zalo chỉ chấp nhận URL thuộc domain đã xác thực. Làm bước này **trước**, nếu không webhook sẽ báo *"chưa được xác thực domain"* và OAuth trả `-14003 Invalid redirect uri`.
+
+Vào Zalo Developers → App → Xác thực domain, tải file HTML được cấp, đặt vào thư mục `public/` của dự án, rồi bấm xác thực.
+
+## Kết nối Official Account
 
 ```bash
 php artisan zalo:oa:add
 ```
 
-Nhập tên, slug và OA ID (lấy ở trang quản trị Zalo OA), rồi lệnh hỏi có cấp quyền luôn không.
+Nhập tên, slug và OA ID (lấy ở trang quản trị Zalo OA). Lệnh sẽ hỏi có cấp quyền luôn không.
 
-Luồng cấp quyền in ra một link — mở bằng tài khoản **admin của OA**, bấm đồng ý. Callback truy cập được từ Internet thì token tự lưu; đang chạy localhost thì copy giá trị `code` trên thanh địa chỉ dán vào terminal.
+Luồng cấp quyền in ra một link — mở bằng tài khoản **admin của OA** và bấm đồng ý. Nếu callback truy cập được từ Internet thì token tự lưu; nếu đang chạy localhost, copy giá trị `code` trên thanh địa chỉ rồi dán vào terminal.
 
-> **Redirect URI phải khớp CHÍNH XÁC** giá trị khai trong Zalo Developers — thừa hay thiếu một dấu `/` cuối cũng hỏng. Dashboard `/zalo` in sẵn giá trị đúng kèm nút copy.
+Redirect URI phải khớp chính xác giá trị khai trong Zalo Developers, kể cả dấu `/` cuối. Dashboard `/zalo` hiển thị sẵn giá trị đúng kèm nút copy.
+
+Kiểm tra kết nối:
 
 ```bash
 php artisan zalo:oa:list
 php artisan zalo:oa:test cskh
 ```
 
-## Kết nối Bot đầu tiên
+### Scheduler
 
-Đơn giản hơn OA nhiều: token tĩnh, không OAuth, không refresh, không dính Zalo App.
+Thêm cron sau, nếu không token sẽ hết hạn:
+
+```bash
+* * * * * cd /path/to/app && php artisan schedule:run >> /dev/null 2>&1
+```
+
+`refresh_token` của Zalo sống khoảng ba tháng và xoay vòng mỗi lần dùng. Package đăng ký sẵn `zalo:token:refresh --all` chạy hàng giờ.
+
+## Kết nối Bot
+
+Bot dùng token tĩnh, không cần OAuth và không dính Zalo App. Lấy token tại [bot.zaloplatforms.com](https://bot.zaloplatforms.com).
 
 ```bash
 php artisan zalo:bot:add
 ```
 
-Lệnh gọi `getMe` ngay để bắt lỗi copy nhầm token. Token hỏng thì bản ghi vừa tạo cũng bị xoá, không để lại rác.
+Lệnh gọi `getMe` ngay để kiểm tra token. Nếu token sai, bản ghi vừa tạo sẽ bị xoá.
 
 ### Lấy `chat_id`
 
-Bot chỉ gửi được tin khi biết `chat_id`, mà Zalo **không có API nào liệt kê** nó. Cách duy nhất là bắt lấy lúc người ta nhắn tới — nên phải cắm webhook trước.
+Bot cần `chat_id` để gửi tin. Zalo không có API liệt kê `chat_id`, nên phải cắm webhook để package ghi lại khi có người nhắn tới.
 
 ```dotenv
-# BẠN tự đặt chuỗi này, không phải Zalo cấp. Bắt buộc, dài 8–256 ký tự.
+# Chuỗi do bạn tự đặt, dài 8–256 ký tự
 ZALO_BOT_WEBHOOK_SECRET=
 ```
 
 ```bash
-php artisan zalo:bot:webhook support          # xem URL và trạng thái secret
-php artisan zalo:bot:webhook support --set    # cắm
-# … mở Zalo, nhắn cho bot một câu …
-php artisan zalo:bot:chats support            # chat_id đã được lưu lại
+php artisan zalo:bot:webhook support --set
+# Mở Zalo, nhắn cho bot một câu
+php artisan zalo:bot:chats support
 php artisan zalo:bot:send support <chat_id> "Xin chào"
 ```
 
-Từ lúc webhook chạy, mọi người nhắn tới bot đều được ghi vào bảng `zl_bot_chats` — không phải poll thủ công nữa. Cũng làm được toàn bộ việc này bằng chuột ở `/zalo/bots/{slug}`.
+Mọi người nhắn tới bot được lưu vào bảng `zl_bot_chats`. Có thể làm toàn bộ các bước trên bằng giao diện tại `/zalo/bots/{slug}`.
 
-> `getUpdates` và webhook **loại trừ nhau**: Zalo trả lỗi 400 nếu gọi `getUpdates` khi bot đang cắm webhook.
+`getUpdates` và webhook loại trừ nhau — Zalo trả lỗi 400 nếu gọi `getUpdates` khi bot đang cắm webhook.
 
 ## Gửi tin nhắn
 
 ```php
 use FieldVn\Zalo\Laravel\Facades\Zalo;
 
-// Ngắn nhất
 Zalo::oa('cskh')->messages()->text($userId, 'Đơn hàng đã được xác nhận');
-Zalo::bot('support')->text($chatId, 'pong');
+Zalo::bot('support')->text($chatId, 'Xin chào');
 ```
 
-Helper toàn cục nếu bạn thích:
+Hoặc dùng helper toàn cục:
 
 ```php
 zalo_oa('cskh')->messages()->text($userId, 'Xin chào');
-zalo_bot('support')->text($chatId, 'pong');
+zalo_bot('support')->text($chatId, 'Xin chào');
 ```
 
-### OA — tin có nút
+### Official Account
+
+**Tin có nút bấm**
 
 ```php
 use FieldVn\Zalo\Core\Channels\OA\Messages\Button;
@@ -187,11 +145,11 @@ Zalo::oa('cskh')->messages()->send(
 );
 ```
 
-Message object là **immutable** — mỗi lần gọi trả về bản sao mới. Nhờ vậy dựng sẵn một tin mẫu rồi đổi từng chút cho nhiều người là an toàn.
+Message object là immutable — mỗi lần gọi trả về bản sao mới, nên dựng sẵn tin mẫu rồi tuỳ biến cho từng người nhận là an toàn.
 
-### OA — gửi ảnh
+**Gửi ảnh**
 
-OA không nhận URL ảnh như Bot: phải upload trước.
+OA yêu cầu upload ảnh trước để lấy `attachment_id`:
 
 ```php
 $id = Zalo::oa('cskh')->uploads()->image('/duong/dan/anh.jpg');
@@ -199,37 +157,11 @@ $id = Zalo::oa('cskh')->uploads()->image('/duong/dan/anh.jpg');
 Zalo::oa('cskh')->messages()->image($userId, $id, 'Ảnh sản phẩm');
 ```
 
-`attachment_id` dùng lại được nhiều lần — gửi cùng một ảnh cho nhiều người thì upload **một** lần rồi lưu id lại. Package kiểm file thiếu, rỗng, quá 1 MB hoặc sai định dạng **trước khi** gọi mạng.
+`attachment_id` dùng lại được, nên gửi cùng một ảnh cho nhiều người chỉ cần upload một lần. Package kiểm tra file tồn tại, dung lượng dưới 1 MB và đúng định dạng trước khi gọi API.
 
-### OA — loại tin khác
+**Payload tuỳ ý**
 
-```php
-$messages = Zalo::oa('cskh')->messages();
-
-$messages->send($message);          // tin Tư vấn
-$messages->transaction($message);   // endpoint cũ — xem cảnh báo bên dưới
-$messages->promotion($message);     // endpoint cũ — xem cảnh báo bên dưới
-```
-
-> ⚠️ `transaction()` và `promotion()` trỏ tới hai endpoint có từ trước
-> **01/01/2026**, thời điểm Zalo hợp nhất chúng cùng ZNS thành ZBS Template
-> Message. Chúng **có thể đã ngừng hoạt động** — package chưa xác minh được.
-> Nếu bạn gọi thử, xin báo kết quả về issue.
-
-### Bot
-
-```php
-$bot = Zalo::bot('support');
-
-$bot->text($chatId, 'pong');
-$bot->photo($chatId, 'https://…/anh.png', 'Chú thích');
-$bot->sticker($chatId, $stickerId);
-$bot->typing($chatId);              // trước khi làm việc lâu (gọi AI, tra cứu chậm)
-```
-
-### Dạng tin package chưa bọc
-
-Zalo OA còn nhiều dạng tin (list/carousel, `request_user_info`, file, template giao dịch) mà package **chưa xác minh được payload thật**, nên cố ý không bọc thành class có kiểu. Dùng `RawMessage` để tự dựng:
+Với những dạng tin package chưa bọc thành class (list, carousel, `request_user_info`, file):
 
 ```php
 use FieldVn\Zalo\Core\Channels\OA\Messages\RawMessage;
@@ -244,45 +176,55 @@ Zalo::oa('cskh')->messages()->send(
 );
 ```
 
-Bán cho bạn một API trông chắc chắn mà chưa từng chạy thật thì tệ hơn là nói thẳng. Nếu bạn xác minh được một dạng tin, hãy mở issue để nó thành class có kiểu.
-
-Endpoint chưa được bọc thì đi thẳng:
+Gọi thẳng endpoint chưa được bọc:
 
 ```php
 Zalo::oa('cskh')->request()->get('/v3.0/oa/duong-dan-moi', ['param' => 'x']);
 ```
+
+### Bot
+
+```php
+$bot = Zalo::bot('support');
+
+$bot->text($chatId, 'Xin chào');
+$bot->photo($chatId, 'https://…/anh.png', 'Chú thích');
+$bot->sticker($chatId, $stickerId);
+$bot->typing($chatId);
+```
+
+Bot nhận thẳng URL ảnh, không cần upload trước như OA.
 
 ### Nhiều OA
 
 ```php
 Zalo::oa();                  // OA active đầu tiên
 Zalo::oa('marketing');       // theo slug
-Zalo::availableOas();        // Collection<ZaloOa> — cho dropdown
+Zalo::availableOas();        // Collection<ZaloOa>, dùng cho dropdown
 
-// Phân phối có chủ đích theo tag
 Zalo::oas(fn ($oa) => in_array('cskh', $oa->tags ?? []))
     ->each(fn ($channel) => $channel->messages()->text($userId, $noiDung));
 ```
 
-## Nhận tin nhắn (Webhook)
+## Nhận tin nhắn
 
-Hai kênh xác thực theo hai cơ chế khác hẳn nhau, nên có hai route riêng và **không** dùng chung code.
+OA và Bot dùng hai URL và hai cơ chế xác thực khác nhau:
 
-| | URL | Xác thực |
+| Kênh | URL | Xác thực |
 |---|---|---|
 | OA | `/zalo/webhook` | chữ ký `X-ZEvent-Signature` |
-| Bot | `/zalo/webhook/bot/{slug}` | secret nguyên văn ở `X-Bot-Api-Secret-Token` |
+| Bot | `/zalo/webhook/bot/{slug}` | secret ở header `X-Bot-Api-Secret-Token` |
 
-Bot mỗi con một URL riêng vì payload Zalo gửi **không kèm định danh bot nào** — đường dẫn là cách duy nhất để biết update thuộc về bot nào.
+Mỗi bot có URL riêng vì payload Zalo gửi không kèm định danh bot.
 
 ```dotenv
-ZALO_WEBHOOK_SECRET=          # OA Secret Key — Zalo CẤP cho bạn
-ZALO_BOT_WEBHOOK_SECRET=      # Bot secret — BẠN tự đặt, 8–256 ký tự
+ZALO_WEBHOOK_SECRET=          # OA Secret Key, lấy trong cài đặt webhook của App
+ZALO_BOT_WEBHOOK_SECRET=      # chuỗi bạn tự đặt cho bot, 8–256 ký tự
 ```
 
-> Ba secret khác nhau, rất hay nhầm: `ZALO_APP_SECRET` (của ứng dụng), `ZALO_WEBHOOK_SECRET` (*OA Secret Key* trong phần cài đặt webhook), và `ZALO_BOT_WEBHOOK_SECRET` (bạn tự đặt cho bot).
+`ZALO_WEBHOOK_SECRET` khác `ZALO_APP_SECRET`. Nó là *OA Secret Key* nằm ở phần cài đặt webhook, không phải secret của ứng dụng.
 
-### Lắng nghe
+### Lắng nghe event
 
 ```php
 use FieldVn\Zalo\Laravel\Events\ZaloMessageReceived;
@@ -314,42 +256,75 @@ class TraLoiBot
 
 | Event | Khi nào |
 |---|---|
-| `ZaloWebhookReceived` | **Mọi** sự kiện của OA, kể cả loại package chưa bọc riêng |
+| `ZaloWebhookReceived` | Mọi sự kiện của OA, kèm payload gốc |
 | `ZaloMessageReceived` | Người dùng gửi tin nhắn tới OA |
 | `ZaloFollowerAdded` | Người dùng quan tâm OA |
 | `ZaloFollowerRemoved` | Người dùng bỏ quan tâm |
 | `ZaloOaConnected` | OA vừa được cấp quyền |
 | `ZaloOaDisconnected` | OA mất kết nối, cần cấp quyền lại |
-| `ZaloBotUpdateReceived` | **Mọi** update của Bot, kèm payload gốc |
+| `ZaloBotUpdateReceived` | Mọi update của Bot, kèm payload gốc |
 | `ZaloBotMessageReceived` | Người dùng nhắn cho Bot |
 
-Zalo liên tục thêm loại sự kiện mới, nên `ZaloWebhookReceived` và `ZaloBotUpdateReceived` luôn được bắn cho tất cả — bạn không phải chờ package cập nhật mới bắt được chúng.
+`ZaloWebhookReceived` và `ZaloBotUpdateReceived` được bắn cho mọi loại sự kiện, kể cả loại package chưa bọc riêng.
 
-### Vài điểm đáng biết
+### Hành vi cần biết
 
-- Route webhook **không** đi qua auth của UI. Zalo không đăng nhập được; chữ ký (OA) hoặc secret header (Bot) là lớp bảo vệ duy nhất và đủ.
-- Chưa cấu hình secret thì mọi webhook bị từ chối 401 — **fail-closed**, không im lặng cho qua.
-- Secret của Bot đi **nguyên văn** trong header nên nó là mật khẩu chứ không phải chữ ký: bắt buộc HTTPS, và package so sánh bằng `hash_equals`.
-- Mặc định xử lý qua queue (`ZALO_WEBHOOK_QUEUE=true`). Zalo có timeout và sẽ gửi lại nếu không nhận được 200 kịp.
-- Lỗi trong listener của bạn **không** làm webhook trả 500 — nếu trả, Zalo gửi lại và bạn xử lý trùng.
-- Chống trùng nên dựa vào `$e->messageId`, không dựa vào timestamp.
-- `chat_id` được lưu **trước** khi bắn event: listener của bạn hỏng cũng không làm mất thứ không lấy lại được.
+- Route webhook không đi qua auth của giao diện. Chữ ký (OA) hoặc secret header (Bot) là lớp bảo vệ duy nhất.
+- Chưa cấu hình secret thì webhook bị từ chối 401.
+- Webhook của Bot yêu cầu HTTPS vì secret đi nguyên văn trong header.
+- Mặc định xử lý qua queue (`ZALO_WEBHOOK_QUEUE=true`).
+- Lỗi trong listener của bạn không làm webhook trả 500. Nếu trả 500, Zalo sẽ gửi lại và bạn xử lý trùng.
+- Chống trùng nên dựa vào `$e->messageId`.
 
 Bật `ZALO_WEBHOOK_LOG=true` để ghi payload vào `zl_webhook_logs` khi cần debug. Mặc định tắt vì payload chứa nội dung tin nhắn của người dùng.
 
-Package **không** tự gửi cảnh báo khi OA mất kết nối — nó không thể đoán bạn muốn nhận qua Slack, email hay hệ thống giám sát nào. Lắng nghe `ZaloOaDisconnected` và tự xử lý.
+Package không tự gửi cảnh báo khi OA mất kết nối. Lắng nghe `ZaloOaDisconnected` để tự xử lý.
+
+## Chi phí và giới hạn
+
+### Tin Tư vấn (OA)
+
+Tính từ tương tác cuối của người dùng:
+
+| Khoảng thời gian | Qua OpenAPI |
+|---|---|
+| Trong 48 giờ | Gửi được, miễn phí |
+| 48 giờ đến 7 ngày | Gửi được, Zalo tính phí |
+| Sau 7 ngày | Bị từ chối |
+
+Package không tự chặn khi quá 48 giờ vì nó không biết thời điểm tương tác cuối. Nếu cần kiểm soát chi phí, hãy tự lưu mốc tương tác từ webhook.
+
+"Tương tác" gồm: gửi tin nhắn tới OA, gửi tin trong nhóm GMF, gọi thoại tới OA, đồng ý nhận cuộc gọi, bình luận bài viết, tương tác chatbot, bấm Menu hoặc CTA, bấm widget.
+
+### Khả năng của từng kênh
+
+| | Bot | OA |
+|---|---|---|
+| Text | ✅ | ✅ |
+| Ảnh | ✅ (URL) | ✅ (upload trước) |
+| Sticker | ✅ | ❌ |
+| Trạng thái đang soạn tin | ✅ | ❌ |
+| Nút bấm | ❌ | ✅ |
+| List, carousel | ❌ | ✅ |
+| Giới hạn thời gian | Không | Có, xem bảng trên |
+
+### ZBS Template Message
+
+Từ 01/01/2026 Zalo hợp nhất ZNS, tin UID Giao dịch và tin UID Truyền thông thành **ZBS Template Message**, gửi qua UID hoặc số điện thoại theo template đã duyệt.
+
+Package chưa hỗ trợ. Hai method `transaction()` và `promotion()` trỏ tới endpoint có trước thời điểm hợp nhất.
 
 ## Cấu hình
 
-### Zalo App — chỉ ở env
+### Zalo App
 
 ```dotenv
 ZALO_APP_ID=
 ZALO_APP_SECRET=
-ZALO_APP_REDIRECT=            # để trống → tự suy ra từ ZALO_UI_PATH
+ZALO_APP_REDIRECT=            # để trống thì tự suy ra từ ZALO_UI_PATH
 ```
 
-App credentials **không bao giờ** vào DB hay UI. Đây là hằng số của môi trường, không phải dữ liệu vận hành.
+App credential chỉ đọc từ env, không lưu vào DB hay sửa qua giao diện.
 
 ### Prefix bảng
 
@@ -357,21 +332,11 @@ App credentials **không bao giờ** vào DB hay UI. Đây là hằng số của
 ZALO_TABLE_PREFIX=zl_
 ```
 
-> ⚠️ **Chốt giá trị này trước lần migrate đầu tiên.** Đổi sau khi đã migrate sẽ khiến code tìm bảng theo tên mới trong khi DB vẫn giữ tên cũ.
+Chốt giá trị này **trước lần migrate đầu tiên**. Đổi sau khi đã migrate sẽ khiến code tìm bảng theo tên mới trong khi DB giữ tên cũ.
 
-Prefix này *cộng dồn* với prefix của DB connection: `DB_PREFIX=app_` + `zl_` → bảng thật là `app_zl_oas`.
+Prefix cộng dồn với prefix của DB connection: `DB_PREFIX=app_` cộng `zl_` cho ra bảng `app_zl_oas`.
 
 Package tạo 6 bảng: `oas`, `oa_tokens`, `bots`, `bot_chats`, `audit_logs`, `webhook_logs`.
-
-### Scheduler — đừng bỏ qua
-
-```bash
-* * * * * cd /path/to/app && php artisan schedule:run >> /dev/null 2>&1
-```
-
-Không có cron này thì token **sẽ chết**. `refresh_token` của Zalo sống khoảng ba tháng và **xoay vòng mỗi lần dùng** — app im lặng quá lâu là mất kết nối vĩnh viễn, phải cấp quyền lại thủ công.
-
-Package đăng ký sẵn `zalo:token:refresh --all` chạy hàng giờ; việc của bạn chỉ là đảm bảo `schedule:run` được gọi.
 
 ### Toàn bộ biến env
 
@@ -394,7 +359,7 @@ ZALO_WEBHOOK_LOG=false
 # Bot
 ZALO_BOT_WEBHOOK_SECRET=
 
-# UI
+# Giao diện
 ZALO_UI_ENABLED=true
 ZALO_UI_PATH=zalo
 ZALO_UI_USER=admin
@@ -409,59 +374,61 @@ ZALO_HTTP_CONNECT_TIMEOUT=5
 ZALO_HTTP_RETRY=3
 ```
 
+### `APP_KEY`
+
+Token lưu trong DB được mã hoá bằng `APP_KEY`. Đổi `APP_KEY` sẽ làm mất toàn bộ token và phải cấp quyền lại cho mọi OA.
+
 ## Giao diện web
 
 Truy cập `https://your-app.com/zalo`.
 
-- **Tổng quan** — sức khoẻ token, Redirect URI và Webhook URL kèm nút copy, cảnh báo những gì đang thiếu
+- **Tổng quan** — sức khoẻ token, Redirect URI và Webhook URL kèm nút copy
 - **Official Account** — danh sách; mỗi OA có trang riêng để sửa, cấp quyền, gửi tin thử
-- **Bot** — danh sách; mỗi bot có trang riêng để sửa, cắm/gỡ webhook, xem `chat_id`, gửi tin thử
+- **Bot** — danh sách; mỗi bot có trang riêng để sửa, cắm webhook, xem `chat_id`, gửi tin thử
 
-UI **không cần build step và không cần `vendor:publish`**: CSS viết tay nhúng thẳng vào layout, không JavaScript framework. Muốn sửa giao diện thì `php artisan vendor:publish --tag=zalo-views`.
-
-Đây là công cụ **cài đặt và chẩn đoán** cho developer, không phải công cụ vận hành cho nhân viên CSKH. Nút "Gửi tin thử" gửi tin thật, nhưng nó có mặt để bạn xác nhận luồng chạy được — không phải để nhắn tin hằng ngày.
+Giao diện không cần build step và không cần `vendor:publish`. Muốn tuỳ biến thì chạy `php artisan vendor:publish --tag=zalo-views`.
 
 ```dotenv
 ZALO_UI_ENABLED=true
 ZALO_UI_PATH=zalo
 ZALO_UI_USER=admin
-ZALO_UI_PASSWORD=             # để trống → UI chỉ chạy được ở local
+ZALO_UI_PASSWORD=             # để trống thì giao diện chỉ chạy ở môi trường local
 ZALO_UI_ALLOWED_IPS=          # ví dụ: 113.161.0.0/16,203.0.113.5
 ```
 
-> ⚠️ **Bắt buộc HTTPS.** Basic Auth gửi credential base64 ở *mọi* request — trên HTTP thuần là truyền plaintext qua đường dây.
+Basic Auth gửi credential ở mọi request nên site phải chạy HTTPS.
 
-Đã có hệ thống auth riêng? Định nghĩa gate, nó sẽ thắng basic auth:
+Nếu dự án đã có hệ thống auth riêng, định nghĩa gate — nó được ưu tiên hơn basic auth:
 
 ```php
 // AppServiceProvider::boot()
 Zalo::auth(fn ($request) => $request->user()?->is_admin === true);
 ```
 
-Token và secret **không bao giờ** hiện đầy đủ trên UI, kể cả với người đã đăng nhập — màn hình này hay bị chụp lại lúc gỡ lỗi.
+Token và secret không hiển thị đầy đủ trên giao diện.
 
 ## Commands
 
-| Command | Việc |
+| Command | Mô tả |
 |---|---|
-| `zalo` | Trạng thái: OA nào sống, token còn bao lâu |
+| `zalo` | Trạng thái OA, Bot và sức khoẻ token |
 | `zalo:install` | Cài đặt: kiểm env, publish config, migrate |
-| `zalo:doctor` | Chẩn đoán cấu hình kèm cách sửa |
+| `zalo:doctor` | Chẩn đoán cấu hình kèm hướng dẫn sửa |
 | `zalo:oa:add` | Thêm OA |
 | `zalo:oa:list` | Liệt kê OA và trạng thái token |
-| `zalo:oa:test {oa}` | Gọi thử API, xác nhận kết nối còn sống |
-| `zalo:authorize {oa}` | Cấp quyền, lấy token lần đầu |
+| `zalo:oa:test {oa}` | Gọi thử API để xác nhận kết nối |
+| `zalo:authorize {oa}` | Cấp quyền và lấy token lần đầu |
 | `zalo:token:refresh` | `{oa?}` · `--all` · `--force` |
-| `zalo:bot:add` | Thêm Bot (tự kiểm tra token ngay) |
+| `zalo:bot:add` | Thêm Bot, tự kiểm tra token |
 | `zalo:bot:list` | Liệt kê Bot |
-| `zalo:bot:test {bot}` | Kiểm tra token bot còn dùng được |
+| `zalo:bot:test {bot}` | Kiểm tra token bot |
 | `zalo:bot:webhook {bot}` | Xem · `--set` · `--delete` · `--url=` |
 | `zalo:bot:chats {bot?}` | Liệt kê `chat_id` đã ghi nhận |
-| `zalo:bot:send {bot} {chat} {text?}` | Gửi tin thật · `--photo=` · `--sticker=` |
+| `zalo:bot:send {bot} {chat} {text?}` | Gửi tin · `--photo=` · `--sticker=` |
 
-Gặp vấn đề thì chạy `zalo:doctor` trước — nó kiểm credential, redirect URI, bảng, mã hoá, UI, scheduler, từng OA và từng Bot, rồi in ra cách sửa.
+Gặp vấn đề thì chạy `zalo:doctor` trước — lệnh này kiểm credential, redirect URI, bảng, mã hoá, giao diện, scheduler, từng OA và từng Bot.
 
-## Testing dự án của bạn
+## Testing
 
 `Zalo::fake()` chặn mọi lời gọi tới Zalo và cho phép assert những gì đã gửi:
 
@@ -477,9 +444,9 @@ it('gửi xác nhận khi đặt hàng', function () {
 });
 ```
 
-**Không cần OA trong DB, không cần token, không cần giả lập OAuth.**
+Không cần OA trong DB, không cần token, không cần giả lập OAuth.
 
-| Assertion | Việc |
+| Assertion | Mô tả |
 |---|---|
 | `assertSentTo($userId, $text?)` | Đã gửi tin nhắn tới người này |
 | `assertNotSentTo($userId)` | Chưa gửi cho người này |
@@ -490,19 +457,17 @@ it('gửi xác nhận khi đặt hàng', function () {
 | `assertSentCount($n)` | |
 | `sent()` | Collection các request đã ghi |
 
-Đặt response giả khi cần:
+Đặt response giả:
 
 ```php
 Zalo::fake()->push(['error' => -216, 'message' => 'Token hết hạn']);
-
-// code của bạn phải xử lý được ApiException
 ```
 
-`fake()` chỉ thay **tầng mạng** — message builder, resource và validate payload vẫn chạy code thật. Nghĩa là dựng tin nhắn sai (quá 2000 ký tự, nút không phải HTTPS, quên gọi `->text()`) thì test vẫn bắt được; khác hẳn việc mock cả facade rồi test xanh trong khi production hỏng.
+`fake()` chỉ thay tầng mạng. Message builder, resource và phần validate payload vẫn chạy code thật, nên tin nhắn dựng sai (quá 2000 ký tự, nút không phải HTTPS) vẫn bị bắt trong test.
 
-## Điểm mở rộng
+## Mở rộng
 
-Mọi thành phần chính đều thay được mà không phải fork:
+Thay thành phần mà không cần fork:
 
 ```php
 // Đổi tầng HTTP
@@ -512,40 +477,9 @@ $this->app->bind(FieldVn\Zalo\Contracts\Transport::class, MyTransport::class);
 $this->app->bind(FieldVn\Zalo\Contracts\OaRepository::class, TenantOaRepository::class);
 ```
 
-`OAChannel`, `BotChannel` và các `Resource` đều dùng `Macroable` — thêm method của riêng bạn thoải mái.
+`OAChannel`, `BotChannel` và các `Resource` đều dùng `Macroable`.
 
-## Lưu ý về `APP_KEY`
-
-Token lưu trong DB được mã hoá bằng `APP_KEY`. **Đổi `APP_KEY` là mất toàn bộ token**, phải cấp quyền lại cho mọi OA.
-
-## Những gì chưa được xác minh
-
-Package này đã chạy thật với Zalo Bot API: URL, hình dạng lỗi, `getMe`, `sendMessage`, webhook. Nhưng một số phần của **OA API** vẫn dựa trên tài liệu chứ chưa gọi thật:
-
-| Chỗ nào | Rủi ro |
-|---|---|
-| Payload tin có nút (`template_type: button`) | Trung bình |
-| `timestamp` webhook tính bằng mili giây | Trung bình |
-| Ảnh OA dùng `template_type: media` | Trung bình |
-| `ImageMessage::url()` — OA nhận URL thay `attachment_id` | **Cao** — nhiều khả năng chỉ Bot mới nhận URL |
-| `transaction()` / `promotion()` còn hoạt động sau 01/01/2026 | **Cao** — Zalo đã hợp nhất chúng vào ZBS Template Message |
-| `refresh_token` sống ~90 ngày | Chỉ biết sau vài tháng |
-
-**Chưa hỗ trợ: ZBS Template Message.** Đây là khoảng trống lớn nhất còn lại.
-Từ 01/01/2026, ZNS và tin UID Giao dịch/Truyền thông đã gộp thành ZBS Template
-Message — kênh duy nhất gửi được tới người **chưa từng tương tác** với OA, kể
-cả qua số điện thoại. OTP, xác nhận đơn, nhắc lịch đều nằm ở đây.
-
-Chưa làm vì tài liệu ZBS trên `developers.zalo.me` render bằng JS và không đọc
-được bằng công cụ tự động, mà ZBS **tốn tiền mỗi tin** nên đoán payload là
-không chấp nhận được. Nếu bạn có tài khoản ZBS và copy được tài liệu, xin mở
-issue — đây là đóng góp có tác động lớn nhất lúc này.
-
-Danh sách đầy đủ và cách kiểm từng cái nằm ở [`docs/zalo/02-test-thuc-te.md`](https://github.com/field-vn/zalo) trong repo phát triển.
-
-Xác minh được cái nào, xin mở issue — kể cả khi kết quả là *"cái này sai"*. Với những dạng tin chưa chắc chắn, package cố ý dùng `RawMessage` thay vì class có kiểu.
-
-## Phát triển package này
+## Phát triển package
 
 ```bash
 composer test
@@ -557,13 +491,9 @@ composer format
 
 Xem [CONTRIBUTING.md](CONTRIBUTING.md) và [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
-Đóng góp có giá trị nhất cho package này **không phải code** — mà là xác minh
-một giả định trong mục ở trên bằng cách gọi thật Zalo API rồi dán kết quả vào
-issue. Có sẵn mẫu [Xác minh hành vi của Zalo API](https://github.com/field-vn/zalo/issues/new/choose).
-
 ## Bảo mật
 
-Phát hiện lỗ hổng? Xem [SECURITY.md](SECURITY.md) — **đừng** mở public issue.
+Phát hiện lỗ hổng? Xem [SECURITY.md](SECURITY.md) — vui lòng không mở public issue.
 
 ## License
 

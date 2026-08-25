@@ -7,8 +7,7 @@ body:
     attributes:
       label: Bạn đang vướng gì
       description: |
-        Mô tả vấn đề thật, đừng mô tả giải pháp. Biết bạn đang cố làm gì thì
-        thường tìm ra cách gọn hơn cách bạn nghĩ tới ban đầu.
+        Mô tả vấn đề bạn đang gặp, không chỉ giải pháp bạn nghĩ tới.
     validations:
       required: true
 
@@ -17,8 +16,7 @@ body:
     attributes:
       label: Hiện đang làm sao để đi tiếp
       description: |
-        `RawMessage` hay `->request()` có giải quyết tạm được không? Nếu có
-        thì mô tả nó vướng ở đâu.
+        `RawMessage` hoặc `->request()` có dùng tạm được không?
 
   - type: dropdown
     id: scope

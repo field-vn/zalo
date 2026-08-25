@@ -1,36 +1,19 @@
-name: Xác minh hành vi của Zalo API
-description: Bạn đã gọi thật một API mà package còn đang phỏng đoán
-labels: [verification]
+name: Báo cáo hành vi API của Zalo
+description: Bạn đã gọi thật một API và kết quả khác với package
+labels: [api-behaviour]
 body:
   - type: markdown
     attributes:
       value: |
-        Đây là loại đóng góp **có giá trị nhất** cho package này.
-
-        Tài liệu của Zalo không đầy đủ, nên một phần payload trong package
-        dựa trên suy đoán. Mục "Những gì chưa được xác minh" trong README
-        liệt kê thẳng những chỗ đó.
-
-        Kết quả là *"cái này sai"* cũng quý ngang *"cái này đúng"* — thậm chí
-        quý hơn, vì nó gỡ được một cái bẫy khỏi tay người dùng sau.
+        Tài liệu của Zalo không phải lúc nào cũng đầy đủ. Nếu bạn gọi thật một
+        API và thấy payload hoặc hành vi khác với package, báo cáo ở đây giúp
+        sửa cho đúng.
 
   - type: input
-    id: which
+    id: endpoint
     attributes:
-      label: Giả định nào
-      description: Số thứ tự trong README, hoặc mô tả ngắn.
-      placeholder: "Số 12 — ImageMessage::url()"
-    validations:
-      required: true
-
-  - type: dropdown
-    id: result
-    attributes:
-      label: Kết quả
-      options:
-        - Đúng như package đang làm
-        - SAI — payload thật khác
-        - Zalo từ chối hoàn toàn, tính năng này không tồn tại
+      label: Endpoint hoặc method
+      placeholder: "ImageMessage::url() / POST /v3.0/oa/message/cs"
     validations:
       required: true
 
@@ -38,7 +21,7 @@ body:
     id: request
     attributes:
       label: Request đã gửi
-      description: URL, method, và body. Xoá token, secret và dữ liệu cá nhân.
+      description: URL, method và body. Xoá token, secret và dữ liệu cá nhân.
       render: json
     validations:
       required: true
@@ -47,7 +30,7 @@ body:
     id: response
     attributes:
       label: Response Zalo trả về
-      description: Nguyên văn, kể cả mã lỗi.
+      description: Nguyên văn, kèm mã lỗi.
       render: json
     validations:
       required: true
@@ -55,8 +38,6 @@ body:
   - type: input
     id: context
     attributes:
-      label: Bối cảnh OA/Bot
-      description: |
-        Có ảnh hưởng tới kết quả. Ví dụ OA đã xác thực hay chưa, gói dịch vụ
-        nào, bot loại BASIC hay khác.
-      placeholder: "OA tick vàng, đã liên kết ZBS · trong khung 48h"
+      label: Bối cảnh OA hoặc Bot
+      description: Ảnh hưởng tới kết quả — OA đã xác thực chưa, gói dịch vụ nào, trong hay ngoài khung 48 giờ.
+      placeholder: "OA đã xác thực, trong khung 48 giờ"

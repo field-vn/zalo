@@ -5,8 +5,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Trước khi mở issue, chạy `php artisan zalo:doctor` — phần lớn vấn đề
-        cấu hình sẽ được nó chỉ ra kèm cách sửa.
+        Chạy `php artisan zalo:doctor` trước khi mở issue — nó chỉ ra phần lớn
+        vấn đề cấu hình kèm cách sửa.
 
   - type: textarea
     id: doctor
@@ -32,9 +32,7 @@ body:
     attributes:
       label: Thông báo lỗi
       description: |
-        Dán nguyên văn, kể cả **mã lỗi** của Zalo (ví dụ `-216`, `-14003`).
-        Tài liệu Zalo tra theo mã chứ không tra theo câu chữ, nên thiếu mã là
-        rất khó giúp.
+        Dán nguyên văn, kèm mã lỗi của Zalo (ví dụ `-216`, `-14003`).
       render: text
 
   - type: input
@@ -62,9 +60,8 @@ body:
     attributes:
       label: Payload Zalo trả về (nếu có)
       description: |
-        Rất hữu ích, nhất là với các dạng tin chưa được xác minh. **Xoá
-        `user_id`, `chat_id`, số điện thoại và nội dung tin nhắn thật** trước
-        khi dán.
+        Xoá `user_id`, `chat_id`, số điện thoại và nội dung tin nhắn thật
+        trước khi dán.
       render: json
 
   - type: checkboxes
