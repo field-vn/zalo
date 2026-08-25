@@ -68,22 +68,22 @@ it('nhận webhook có chữ ký hợp lệ', function (): void {
     Event::assertDispatched(ZaloMessageReceived::class);
 });
 
-it('từ chối 401 khi chữ ký sai', function (): void {
+it('KHÔNG XỬ LÝ khi chữ ký sai', function (): void {
     Event::fake();
 
-    postWebhook(messagePayload(), 'mac=chu-ky-gia-mao')->assertStatus(401);
+    postWebhook(messagePayload(), 'mac=chu-ky-gia-mao')->assertOk()->assertJson(['processed' => false]);
 
     assertNoZaloEvents();
 });
 
-it('từ chối 401 khi thiếu header chữ ký', function (): void {
+it('KHÔNG XỬ LÝ khi thiếu header chữ ký', function (): void {
     Event::fake();
 
     $payload = messagePayload();
     $raw = (string) json_encode($payload);
 
     $this->call('POST', '/zalo/webhook', [], [], [], ['CONTENT_TYPE' => 'application/json'], $raw)
-        ->assertStatus(401);
+        ->assertOk()->assertJson(['processed' => false]);
 
     assertNoZaloEvents();
 });
@@ -92,7 +92,7 @@ it('FAIL-CLOSED khi chưa cấu hình webhook secret', function (): void {
     config()->set('zalo.apps.default.webhook_secret', null);
     Event::fake();
 
-    postWebhook(messagePayload())->assertStatus(401);
+    postWebhook(messagePayload())->assertOk()->assertJson(['processed' => false]);
 
     assertNoZaloEvents();
 });

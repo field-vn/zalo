@@ -30,7 +30,15 @@ class BotWebhookController
     public function __invoke(Request $request, ZaloBot $bot, BotWebhookDispatcher $dispatcher): JsonResponse
     {
         if (! $this->verify($request, $bot)) {
-            return response()->json(['error' => 'invalid secret token'], 401);
+            // Trả 200 nhưng KHÔNG xử lý — cùng lý do với webhook OA: nền tảng
+            // chỉ chấp nhận URL trả về 200, còn việc chặn nằm ở chỗ không
+            // dispatch event và không ghi DB.
+            Log::warning('Webhook Bot: secret không khớp, đã bỏ qua.', [
+                'bot' => $bot->slug,
+                'co_header' => $request->hasHeader(BotSecretVerifier::HEADER),
+            ]);
+
+            return response()->json(['ok' => true, 'processed' => false]);
         }
 
         /** @var array<string, mixed> $payload */
@@ -67,7 +75,7 @@ class BotWebhookController
         if (! BotSecretVerifier::isValidLength($secret)) {
             // Fail-closed. Chưa cấu hình secret thì không phân biệt được
             // webhook thật với request giả mạo.
-            Log::warning('Webhook Bot bị từ chối: ZALO_BOT_WEBHOOK_SECRET thiếu hoặc sai độ dài (cần 8-256 ký tự).', [
+            Log::warning('Webhook Bot: ZALO_BOT_WEBHOOK_SECRET thiếu hoặc sai độ dài (cần 8-256 ký tự).', [
                 'bot' => $bot->slug,
             ]);
 

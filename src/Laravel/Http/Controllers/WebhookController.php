@@ -35,8 +35,22 @@ class WebhookController
         $payload = json_decode($raw, true) ?: [];
 
         if (! $this->verify($request, $raw, $payload)) {
-            // 401 để Zalo (và bạn) biết là chữ ký sai chứ không phải app lỗi.
-            return response()->json(['error' => 'invalid signature'], 401);
+            // Trả 200 nhưng KHÔNG xử lý.
+            //
+            // Zalo gửi một POST kiểm tra kết nối khi bạn khai webhook URL, và
+            // chỉ chấp nhận URL nào trả về 200. Request đó không phải sự kiện
+            // thật nên không có chữ ký hợp lệ — trả 401 ở đây làm webhook
+            // KHÔNG BAO GIỜ thiết lập được.
+            //
+            // Fail-closed nằm ở chỗ không dispatch event, không ghi DB. Mã
+            // trạng thái chỉ nói cho bên gọi biết, không phải lớp bảo vệ.
+            Log::warning('Webhook Zalo: chữ ký không hợp lệ, đã bỏ qua.', [
+                'event' => $payload['event_name'] ?? null,
+                'app_id' => $payload['app_id'] ?? null,
+                'co_chu_ky' => $request->hasHeader('X-ZEvent-Signature'),
+            ]);
+
+            return response()->json(['ok' => true, 'processed' => false]);
         }
 
         if (config('zalo.webhook.queue', true)) {
@@ -72,7 +86,7 @@ class WebhookController
         $app = config('zalo.apps.'.$appKey);
 
         if ($app === null || empty($app['webhook_secret'])) {
-            Log::warning('Webhook Zalo bị từ chối: chưa cấu hình ZALO_WEBHOOK_SECRET.');
+            Log::warning('Webhook Zalo: chưa cấu hình ZALO_WEBHOOK_SECRET nên không xác thực được.');
 
             // Fail-closed. Chưa cấu hình secret thì không có cách nào phân biệt
             // webhook thật với request giả mạo — từ chối là lựa chọn duy nhất.

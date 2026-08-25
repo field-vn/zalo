@@ -10,6 +10,23 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-08-25
+
+### Fixed
+
+- **Webhook trả 200 thay vì 401 khi xác thực thất bại.** Zalo gửi một POST
+  kiểm tra kết nối khi khai webhook URL và chỉ chấp nhận URL trả về 200.
+  Request đó không mang chữ ký hợp lệ, nên 401 khiến webhook không bao giờ
+  thiết lập được. Payload không xác thực vẫn KHÔNG được xử lý — không bắn
+  event, không ghi DB — chỉ khác ở mã trạng thái trả về.
+- Ghi log khi chữ ký hoặc secret không khớp. Trước đây nhánh này im lặng nên
+  không chẩn đoán được từ phía server.
+
+### Added
+
+- Trang chi tiết OA hiển thị Redirect URI kèm nút copy và các bước khai báo
+  bên Zalo Developers.
+
 ## [0.1.1] — 2026-08-25
 
 ### Changed
@@ -65,6 +82,7 @@ Bản phát hành đầu tiên.
   01/01/2026, thời điểm Zalo hợp nhất chúng cùng ZNS thành ZBS Template
   Message. ZBS Template Message chưa được hỗ trợ.
 
-[Unreleased]: https://github.com/field-vn/zalo/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/field-vn/zalo/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/field-vn/zalo/releases/tag/v0.2.0
 [0.1.1]: https://github.com/field-vn/zalo/releases/tag/v0.1.1
 [0.1.0]: https://github.com/field-vn/zalo/releases/tag/v0.1.0

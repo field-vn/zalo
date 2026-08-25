@@ -50,43 +50,58 @@ function botMessagePayload(string $chatId = 'chat-1', string $text = 'xin chào'
 }
 
 /*
-| Nhóm quan trọng nhất: fail-closed. Secret đi NGUYÊN VĂN trong header nên
-| nó là mật khẩu, không phải chữ ký — mọi kẽ hở ở đây là mở toang cửa.
+| Nhóm quan trọng nhất: fail-closed.
+|
+| Fail-closed ở đây nghĩa là KHÔNG XỬ LÝ, không phải trả mã lỗi. Nền tảng chỉ
+| chấp nhận webhook URL nào trả 200, nên trả 401 khiến webhook không bao giờ
+| thiết lập được. Điều cần khoá lại là: không bắn event, không ghi DB.
 */
 
-it('TỪ CHỐI khi thiếu header secret', function (): void {
+it('KHÔNG XỬ LÝ khi thiếu header secret', function (): void {
     $bot = makeBot();
     Event::fake();
 
-    postBotWebhook($bot, botMessagePayload(), secret: null)->assertStatus(401);
+    postBotWebhook($bot, botMessagePayload(), secret: null)
+        ->assertOk()
+        ->assertJson(['processed' => false]);
 
     Event::assertNotDispatched(ZaloBotUpdateReceived::class);
     expect(ZaloBotChat::query()->count())->toBe(0);
 });
 
-it('TỪ CHỐI khi secret sai', function (): void {
+it('KHÔNG XỬ LÝ khi secret sai', function (): void {
     $bot = makeBot();
     Event::fake();
 
-    postBotWebhook($bot, botMessagePayload(), secret: 'secret-sai-nhung-du-do-dai-32')->assertStatus(401);
+    postBotWebhook($bot, botMessagePayload(), secret: 'secret-sai-nhung-du-do-dai-32')
+        ->assertOk()
+        ->assertJson(['processed' => false]);
 
     Event::assertNotDispatched(ZaloBotUpdateReceived::class);
 });
 
-it('TỪ CHỐI khi ứng dụng chưa cấu hình secret', function (): void {
+it('KHÔNG XỬ LÝ khi ứng dụng chưa cấu hình secret', function (): void {
     // Chưa cấu hình thì không phân biệt được webhook thật với request giả.
     config()->set('zalo.bot.webhook_secret', null);
     $bot = makeBot();
 
-    postBotWebhook($bot, botMessagePayload(), secret: 'bat-ky-thu-gi-du-dai-32-ky-tu')->assertStatus(401);
+    postBotWebhook($bot, botMessagePayload(), secret: 'bat-ky-thu-gi-du-dai-32-ky-tu')
+        ->assertOk()
+        ->assertJson(['processed' => false]);
+
+    expect(ZaloBotChat::query()->count())->toBe(0);
 });
 
-it('TỪ CHỐI khi secret cấu hình quá ngắn', function (): void {
+it('KHÔNG XỬ LÝ khi secret cấu hình quá ngắn', function (): void {
     // Secret ngắn dò được, nên coi như chưa cấu hình.
     config()->set('zalo.bot.webhook_secret', 'ngan');
     $bot = makeBot();
 
-    postBotWebhook($bot, botMessagePayload(), secret: 'ngan')->assertStatus(401);
+    postBotWebhook($bot, botMessagePayload(), secret: 'ngan')
+        ->assertOk()
+        ->assertJson(['processed' => false]);
+
+    expect(ZaloBotChat::query()->count())->toBe(0);
 });
 
 /*

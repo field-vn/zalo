@@ -67,6 +67,11 @@ class OaController
     {
         return view('zalo::oa-show', [
             'oa' => $oa,
+            // Giá trị này phải khai bên Zalo Developers trước khi cấp quyền.
+            // Hiện ngay cạnh nút Cấp quyền, vì không có nó thì bấm chỉ nhận
+            // về -14003 mà không biết vì sao.
+            'redirectUri' => OaPresenter::redirectUri($oa->app_key),
+            'redirectIsHttps' => str_starts_with(OaPresenter::redirectUri($oa->app_key), 'https://'),
             'statusBadge' => OaPresenter::statusBadge(...),
             'tokenSummary' => OaPresenter::tokenSummary(...),
         ]);

@@ -26,6 +26,40 @@
     </div>
 
     <div class="zl-card">
+        <p class="zl-hint" style="margin-top:0">
+            <strong>Redirect URI</strong> — khai giá trị này trong Zalo Developers
+            <em>trước khi</em> bấm Cấp quyền. Phải khớp từng ký tự, kể cả dấu
+            <code>/</code> cuối; lệch một chút là Zalo trả
+            <code>-14003 Invalid redirect uri</code>.
+        </p>
+
+        <div class="zl-copy">
+            <input type="text" readonly value="{{ $redirectUri }}" id="zl-redirect" onclick="this.select()">
+            <button type="button" class="zl-btn" onclick="
+                document.getElementById('zl-redirect').select();
+                document.execCommand('copy');
+                this.textContent='Đã copy';
+                setTimeout(()=>this.textContent='Copy',1500);
+            ">Copy</button>
+        </div>
+
+        <ol class="zl-hint" style="padding-left:18px;margin-top:10px">
+            <li>Mở <a href="https://developers.zalo.me/apps" target="_blank" rel="noopener">Zalo Developers</a> → chọn App đang dùng</li>
+            <li><strong>Xác thực domain</strong> cho <code>{{ parse_url($redirectUri, PHP_URL_HOST) }}</code> nếu chưa làm — chưa xác thực thì khai đúng vẫn bị từ chối</li>
+            <li>Dán URL trên vào ô Callback URL / Redirect URI của App</li>
+            <li>Quay lại đây bấm Cấp quyền</li>
+        </ol>
+
+        @unless ($redirectIsHttps)
+            <div class="zl-alert zl-alert-err" style="margin:14px 0 0">
+                URL đang là <strong>HTTP</strong>. Zalo chỉ chấp nhận HTTPS trên
+                domain đã xác thực. Sửa <code>APP_URL</code> hoặc đặt
+                <code>ZALO_APP_REDIRECT</code> trỏ tới URL HTTPS thật.
+            </div>
+        @endunless
+    </div>
+
+    <div class="zl-card">
         <div class="zl-actions">
             <a href="{{ route('zalo.oa.authorize', $oa) }}" class="zl-btn zl-btn-primary">
                 {{ $oa->token === null ? 'Cấp quyền' : 'Cấp lại quyền' }}
