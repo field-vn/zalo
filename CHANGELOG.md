@@ -10,6 +10,16 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-08-25
+
+### Changed
+
+- Viết lại README theo giọng tài liệu sử dụng: bỏ phần ghi chú nội bộ, phần
+  đánh giá mức độ hoàn thiện và các đoạn so sánh với nền tảng khác
+- CHANGELOG, template issue/PR và CODE_OF_CONDUCT rút gọn tương ứng
+
+Không có thay đổi nào về code so với 0.1.0.
+
 ## [0.1.0] — 2026-08-25
 
 Bản phát hành đầu tiên.
@@ -55,5 +65,6 @@ Bản phát hành đầu tiên.
   01/01/2026, thời điểm Zalo hợp nhất chúng cùng ZNS thành ZBS Template
   Message. ZBS Template Message chưa được hỗ trợ.
 
-[Unreleased]: https://github.com/field-vn/zalo/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/field-vn/zalo/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/field-vn/zalo/releases/tag/v0.1.1
 [0.1.0]: https://github.com/field-vn/zalo/releases/tag/v0.1.0
