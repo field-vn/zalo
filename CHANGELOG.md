@@ -10,6 +10,22 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **CI chưa từng chạy được test.** Mọi job matrix chết ở `composer update`,
+  trước khi tới `composer test` — nghĩa là badge Tests báo đỏ từ commit đầu
+  tiên và chưa lần nào có lưới an toàn thật.
+
+  Workflow ghim `illuminate/support` nhưng bỏ trống `illuminate/console`,
+  `illuminate/database` và `orchestra/testbench`. Composer chọn `console` một
+  phiên bản khác với `support` đã ghim, và `laravel/framework` do testbench
+  kéo về lại *replace* `illuminate/*` nên không thể cùng tồn tại — bộ điều
+  kiện không bao giờ giải được.
+
+  Nay ghim `laravel/framework` + `orchestra/testbench` theo cặp, dùng
+  `include` để không sinh ra cặp PHP/Laravel không tồn tại. Bổ sung
+  `pdo_sqlite`, `sqlite3` và nâng `actions/checkout` lên v5.
+
 ## [0.2.2] — 2026-08-26
 
 ### Fixed
