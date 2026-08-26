@@ -27,12 +27,16 @@ final class PhoneNumber
      */
     public static function normalize(string $phone): string
     {
+        if (trim($phone) === '') {
+            throw new ConfigurationException('Số điện thoại rỗng.');
+        }
+
         $digits = preg_replace('/[^0-9+]/', '', $phone) ?? '';
         $digits = ltrim($digits, '+');
 
-        if ($digits === '') {
-            throw new ConfigurationException("Số điện thoại rỗng: `{$phone}`");
-        }
+        // KHÔNG ném riêng ở đây khi $digits rỗng: đầu vào như "abc" không hề
+        // rỗng, chỉ là không chứa chữ số nào. Để nó rơi xuống nhánh dưới cho
+        // người dùng nhận được thông báo có kèm định dạng đúng.
 
         // 0987654321 -> 84987654321
         if (str_starts_with($digits, '0')) {
