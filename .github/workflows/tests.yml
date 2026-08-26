@@ -36,7 +36,7 @@ jobs:
     name: PHP ${{ matrix.php }} · Laravel ${{ matrix.laravel }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Static analysis & style
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
