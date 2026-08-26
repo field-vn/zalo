@@ -112,7 +112,7 @@ class OaController
             // phải nói rõ, vì im lặng ở đây đẻ ra lỗi rất khó truy.
             return back()->with(
                 'zalo.error',
-                "Đã đổi OA ID nhưng token đang lưu vẫn của OA cũ. Bấm Cấp lại quyền, nếu không mọi lời gọi API sẽ sai."
+                'Đã đổi OA ID nhưng token đang lưu vẫn của OA cũ. Bấm Cấp lại quyền, nếu không mọi lời gọi API sẽ sai.'
             );
         }
 

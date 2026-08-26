@@ -8,13 +8,13 @@ use FieldVn\Zalo\Laravel\Models\ZaloOa;
 use FieldVn\Zalo\Laravel\Models\ZaloOaToken;
 use FieldVn\Zalo\Tests\Support\FakeTransport;
 use Illuminate\Testing\TestResponse;
+
 /*
 | Fake phải trả ĐÚNG hình dạng body của Bot API: {"ok":..., "result":...}.
 | Trước đây fake dùng {"data":...} kiểu OA nên test xanh mà thực tế mọi lời
 | gọi Bot đều hỏng — fake bịa ra một API không tồn tại thì test không chứng
 | minh được gì.
 */
-
 
 beforeEach(function (): void {
     config()->set('zalo.ui.user', 'admin');

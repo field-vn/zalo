@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FieldVn\Zalo\Laravel\Console;
 
 use FieldVn\Zalo\Contracts\Factory;
+use FieldVn\Zalo\Core\Channels\Bot\BotChannel;
 use FieldVn\Zalo\Core\Exceptions\ApiException;
 use FieldVn\Zalo\Core\Exceptions\ZaloException;
 use FieldVn\Zalo\Core\Webhook\BotSecretVerifier;
@@ -82,7 +83,7 @@ class BotWebhookCommand extends Command
         return '<fg=green>đã đặt</> <fg=gray>('.strlen($secret).' ký tự)</>';
     }
 
-    /** @param \FieldVn\Zalo\Core\Channels\Bot\BotChannel $bot */
+    /** @param BotChannel $bot */
     private function set($bot, string $url, string $secret): int
     {
         if (! BotSecretVerifier::isValidLength($secret)) {
@@ -106,7 +107,7 @@ class BotWebhookCommand extends Command
         return self::SUCCESS;
     }
 
-    /** @param \FieldVn\Zalo\Core\Channels\Bot\BotChannel $bot */
+    /** @param BotChannel $bot */
     private function delete($bot): int
     {
         $bot->updates()->deleteWebhook();

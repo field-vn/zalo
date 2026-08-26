@@ -10,6 +10,7 @@ use FieldVn\Zalo\Laravel\Models\ZaloBot;
 use FieldVn\Zalo\Laravel\Models\ZaloBotChat;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Testing\TestResponse;
 
 const BOT_SECRET = 'secret-du-dai-cho-zalo-32-ky-tu';
 
@@ -28,7 +29,7 @@ function makeBot(string $slug = 'cskh-bot'): ZaloBot
 }
 
 /** @param array<string, mixed> $payload */
-function postBotWebhook(ZaloBot $bot, array $payload = [], ?string $secret = BOT_SECRET): \Illuminate\Testing\TestResponse
+function postBotWebhook(ZaloBot $bot, array $payload = [], ?string $secret = BOT_SECRET): TestResponse
 {
     $headers = $secret === null ? [] : [BotSecretVerifier::HEADER => $secret];
 

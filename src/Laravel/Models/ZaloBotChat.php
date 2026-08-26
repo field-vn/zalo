@@ -9,6 +9,7 @@ use FieldVn\Zalo\Support\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * Một người (hoặc nhóm) đã nhắn cho bot.
@@ -21,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $chat_id
  * @property string|null $display_name
  * @property string|null $last_message
- * @property \Illuminate\Support\Carbon|null $last_message_at
+ * @property Carbon|null $last_message_at
  * @property int $message_count
  */
 class ZaloBotChat extends Model

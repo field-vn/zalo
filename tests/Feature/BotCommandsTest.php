@@ -5,13 +5,13 @@ declare(strict_types=1);
 use FieldVn\Zalo\Contracts\Transport;
 use FieldVn\Zalo\Laravel\Models\ZaloBot;
 use FieldVn\Zalo\Tests\Support\FakeTransport;
+
 /*
 | Fake phải trả ĐÚNG hình dạng body của Bot API: {"ok":..., "result":...}.
 | Trước đây fake dùng {"data":...} kiểu OA nên test xanh mà thực tế mọi lời
 | gọi Bot đều hỏng — fake bịa ra một API không tồn tại thì test không chứng
 | minh được gì.
 */
-
 
 function botTransport(): FakeTransport
 {

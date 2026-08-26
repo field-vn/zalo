@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace FieldVn\Zalo\Core\Channels\Bot\Resources;
 
 use FieldVn\Zalo\Core\Exceptions\ConfigurationException;
-use FieldVn\Zalo\Core\Webhook\BotSecretVerifier;
 use FieldVn\Zalo\Core\Http\Response;
+use FieldVn\Zalo\Core\Webhook\BotSecretVerifier;
 
 final class UpdateResource extends Resource
 {
