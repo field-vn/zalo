@@ -10,7 +10,7 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
-## [0.3.0] — 2026-08-26
+## [0.2.1] — 2026-08-26
 
 ### Added
 
@@ -31,6 +31,11 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 - `PhoneNumber::normalize()` — chấp nhận `0987…`, `+8498…`, `8498…` và mọi
   cách viết có dấu cách hay gạch ngang, quy về `84987654321` như Zalo yêu cầu.
 - Commands `zalo:zbs:templates` và `zalo:zbs:send`.
+- `PhoneNumber` báo lỗi kèm định dạng đúng khi đầu vào không chứa chữ số.
+
+> Đây là bản **patch** dù có tính năng mới. Trong giai đoạn 0.x, giữ ở `0.2.x`
+> để các dự án đang ghim `^0.2` nhận được ngay mà không phải sửa
+> `composer.json`. Sẽ lên `0.3.0` khi ZBS đã xác minh chạy thật.
 
 ## [0.2.0] — 2026-08-25
 
@@ -104,8 +109,8 @@ Bản phát hành đầu tiên.
   01/01/2026, thời điểm Zalo hợp nhất chúng cùng ZNS thành ZBS Template
   Message. ZBS Template Message chưa được hỗ trợ.
 
-[Unreleased]: https://github.com/field-vn/zalo/compare/v0.3.0...HEAD
-[0.3.0]: https://github.com/field-vn/zalo/releases/tag/v0.3.0
+[Unreleased]: https://github.com/field-vn/zalo/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/field-vn/zalo/releases/tag/v0.2.1
 [0.2.0]: https://github.com/field-vn/zalo/releases/tag/v0.2.0
 [0.1.1]: https://github.com/field-vn/zalo/releases/tag/v0.1.1
 [0.1.0]: https://github.com/field-vn/zalo/releases/tag/v0.1.0
