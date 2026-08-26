@@ -31,6 +31,9 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Added
 
+- Command `zalo:zbs:status <msg_id>` — tra trạng thái GIAO tin. `zbs:send` trả
+  `msg_id` khi Zalo *nhận* tin, không phải khi người dùng *nhận được*; khi tin
+  không tới thì đây là chỗ duy nhất nói được nó tắc ở đâu.
 - `sampleData($id)` — dữ liệu mẫu của template, dùng làm `template_data` khi
   gửi thử mà không phải tự đoán tên tham số.
 - Thông báo lỗi ZBS gợi ý cách xử lý theo từng mã (`-120`, `-135`, `-138`:

@@ -24,6 +24,7 @@ use FieldVn\Zalo\Laravel\Console\OaTestCommand;
 use FieldVn\Zalo\Laravel\Console\RefreshTokensCommand;
 use FieldVn\Zalo\Laravel\Console\StatusCommand;
 use FieldVn\Zalo\Laravel\Console\ZbsSendCommand;
+use FieldVn\Zalo\Laravel\Console\ZbsStatusCommand;
 use FieldVn\Zalo\Laravel\Console\ZbsTemplatesCommand;
 use FieldVn\Zalo\Laravel\Http\Middleware\Authorize;
 use FieldVn\Zalo\Laravel\Managers\ZaloManager;
@@ -128,6 +129,7 @@ class ZaloServiceProvider extends ServiceProvider
                 BotWebhookCommand::class,
                 ZbsTemplatesCommand::class,
                 ZbsSendCommand::class,
+                ZbsStatusCommand::class,
             ]);
         }
     }
