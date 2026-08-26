@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FieldVn\Zalo\Laravel\Console;
 
 use FieldVn\Zalo\Contracts\Factory;
+use FieldVn\Zalo\Core\Channels\OA\Resources\ZbsResource;
 use FieldVn\Zalo\Core\Exceptions\ApiException;
 use FieldVn\Zalo\Core\Exceptions\ZaloException;
 use FieldVn\Zalo\Laravel\Console\Concerns\InteractsWithInput;
@@ -23,9 +24,9 @@ class ZbsTemplatesCommand extends Command
     protected $signature = 'zalo:zbs:templates
         {oa? : Slug của OA. Bỏ trống thì dùng OA mặc định}
         {--id= : Xem chi tiết một template, gồm tham số bắt buộc}
-        {--all : Kể cả template chưa duyệt hoặc đã tắt}';
+        {--enabled : Chỉ hiện template đã duyệt và đang dùng được}';
 
-    protected $description = 'Liệt kê template ZBS đã duyệt và tham số của chúng';
+    protected $description = 'Liệt kê template ZBS và tham số của chúng';
 
     public function handle(Factory $zalo): int
     {
@@ -44,26 +45,40 @@ class ZbsTemplatesCommand extends Command
         } catch (ApiException $e) {
             $this->components->error("Zalo từ chối — mã {$e->errorCode}: {$e->getMessage()}");
 
-            if ($e->errorCode === -124 || $e->isTokenError()) {
-                $this->line('  <fg=gray>Token OA hết hạn hoặc thiếu quyền ZBS.</>');
-            }
+            $this->line('  <fg=gray>'.match ($e->errorCode) {
+                -124 => 'Token OA hết hạn — cấp quyền lại cho OA này.',
+                -120, -135, -138 => 'OA hoặc App chưa được cấp quyền dùng ZBS. '
+                    .'Đăng ký tài khoản ZBS và liên kết với App tại zalo.solutions.',
+                -105 => 'App chưa liên kết với OA nào.',
+                default => 'Bảng mã lỗi: developers.zalo.me/docs/zalo-notification-service/phu-luc/bang-ma-loi',
+            }.'</>');
 
             return self::FAILURE;
         }
     }
 
-    /** @param \FieldVn\Zalo\Core\Channels\OA\Resources\ZbsResource $zbs */
-    private function showAll($zbs): int
+    private function showAll(ZbsResource $zbs): int
     {
-        $response = $zbs->templates(status: $this->option('all') ? '' : 'ENABLE');
+        $response = $zbs->templates(
+            status: $this->option('enabled') ? ZbsResource::STATUS_ENABLE : null,
+        );
 
         /** @var list<array<string, mixed>> $items */
         $items = (array) $response->payload();
 
         if ($items === []) {
             $this->newLine();
-            $this->components->warn('Chưa có template nào được duyệt.');
+            $this->components->warn(
+                $this->option('enabled')
+                    ? 'Không có template nào đang dùng được.'
+                    : 'OA này chưa có template nào.',
+            );
             $this->line('  <fg=gray>Tạo mẫu tin trong tài khoản ZBS rồi chờ Zalo kiểm duyệt.</>');
+
+            if ($this->option('enabled')) {
+                $this->line('  <fg=gray>Bỏ --enabled để xem cả mẫu đang chờ duyệt.</>');
+            }
+
             $this->newLine();
 
             return self::SUCCESS;
@@ -89,13 +104,18 @@ class ZbsTemplatesCommand extends Command
         return self::SUCCESS;
     }
 
-    /** @param \FieldVn\Zalo\Core\Channels\OA\Resources\ZbsResource $zbs */
-    private function showOne($zbs, string $templateId): int
+    private function showOne(ZbsResource $zbs, string $templateId): int
     {
-        $response = $zbs->template($templateId);
+        $data = $zbs->template($templateId);
 
-        /** @var array<string, mixed> $data */
-        $data = (array) $response->payload();
+        if ($data === null) {
+            $this->newLine();
+            $this->components->error("OA này không có template nào mang id `{$templateId}`.");
+            $this->line('  <fg=gray>Chạy lệnh không kèm --id để xem danh sách.</>');
+            $this->newLine();
+
+            return self::FAILURE;
+        }
 
         $this->newLine();
         $this->components->twoColumnDetail('<fg=gray>Tên</>', (string) ($data['templateName'] ?? '—'));

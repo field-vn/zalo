@@ -10,6 +10,32 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+## [0.2.2] — 2026-08-26
+
+### Fixed
+
+- **`templates()` trả về `-132 Invalid status`.** Tham số `status` được gửi
+  dưới dạng chuỗi (`ENABLE`) trong khi Zalo chỉ nhận số `1`–`5`. Chỗ dễ nhầm:
+  trong *response*, Zalo trả `status` là chữ. Nay dùng các hằng
+  `ZbsResource::STATUS_ENABLE`…`STATUS_DELETE`.
+- **`quota()` gọi sai đường dẫn** — `/template/quota` không tồn tại, đúng là
+  `/message/quota`.
+
+### Changed
+
+- `templates()` mặc định trả về template ở **mọi trạng thái**. Lọc sẵn theo
+  `ENABLE` khiến OA đang chờ duyệt nhận kết quả rỗng và hiểu nhầm thành chưa
+  tạo mẫu nào. Dùng `--enabled` (thay cho `--all` cũ) để chỉ lấy mẫu dùng được.
+- `template($id)` đọc từ chính danh sách thay vì gọi endpoint riêng —
+  `/template/all` đã trả về `listParams` đầy đủ. Trả về `array|null`.
+
+### Added
+
+- `sampleData($id)` — dữ liệu mẫu của template, dùng làm `template_data` khi
+  gửi thử mà không phải tự đoán tên tham số.
+- Thông báo lỗi ZBS gợi ý cách xử lý theo từng mã (`-120`, `-135`, `-138`:
+  OA/App chưa được cấp quyền ZBS).
+
 ## [0.2.1] — 2026-08-26
 
 ### Added
@@ -109,7 +135,8 @@ Bản phát hành đầu tiên.
   01/01/2026, thời điểm Zalo hợp nhất chúng cùng ZNS thành ZBS Template
   Message. ZBS Template Message chưa được hỗ trợ.
 
-[Unreleased]: https://github.com/field-vn/zalo/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/field-vn/zalo/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/field-vn/zalo/releases/tag/v0.2.2
 [0.2.1]: https://github.com/field-vn/zalo/releases/tag/v0.2.1
 [0.2.0]: https://github.com/field-vn/zalo/releases/tag/v0.2.0
 [0.1.1]: https://github.com/field-vn/zalo/releases/tag/v0.1.1

@@ -129,22 +129,88 @@ it('production phải được chọn tường minh', function (): void {
         ->and(zbs($t)->isProduction())->toBeFalse();
 });
 
-it('tra template và quota đi đúng endpoint', function (): void {
+it('tra cứu đi đúng endpoint', function (): void {
     $t = new FakeTransport;
     $t->push(['error' => 0, 'data' => []]);
     zbs($t)->templates();
     expect($t->lastRequest()['url'])->toBe('https://business.openapi.zalo.me/template/all');
 
     $t->push(['error' => 0, 'data' => []]);
-    zbs($t)->template('tpl-1');
-    expect($t->lastRequest()['url'])->toBe('https://business.openapi.zalo.me/template/info')
+    zbs($t)->sampleData('tpl-1');
+    expect($t->lastRequest()['url'])->toBe('https://business.openapi.zalo.me/template/sample-data')
         ->and($t->lastRequest()['data'])->toBe(['template_id' => 'tpl-1']);
 
     $t->push(['error' => 0, 'data' => []]);
     zbs($t)->quota();
-    expect($t->lastRequest()['url'])->toBe('https://business.openapi.zalo.me/template/quota');
+    expect($t->lastRequest()['url'])->toBe('https://business.openapi.zalo.me/message/quota');
 
     $t->push(['error' => 0, 'data' => []]);
     zbs($t)->status('m-1');
     expect($t->lastRequest()['url'])->toBe('https://business.openapi.zalo.me/message/status');
+});
+
+/*
+| Nhóm dưới đây khoá lại đúng con lỗi đã gặp ngoài đời: gọi templates() trả về
+| `-132 Invalid status` vì package truyền chuỗi "ENABLE" trong khi Zalo chỉ
+| nhận số. Trong response Zalo lại trả `status` là CHỮ, nên rất dễ nhầm chiều.
+*/
+
+it('KHÔNG lọc trạng thái khi không được yêu cầu', function (): void {
+    // Lọc sẵn ENABLE làm OA đang chờ duyệt trông như chưa tạo mẫu nào.
+    $t = new FakeTransport;
+    $t->push(['error' => 0, 'data' => []]);
+
+    zbs($t)->templates();
+
+    expect($t->lastRequest()['data'])->toBe(['offset' => 0, 'limit' => 100])
+        ->and($t->lastRequest()['data'])->not->toHaveKey('status');
+});
+
+it('gửi status dạng SỐ chứ không phải chuỗi', function (): void {
+    $t = new FakeTransport;
+    $t->push(['error' => 0, 'data' => []]);
+
+    zbs($t)->templates(status: ZbsResource::STATUS_ENABLE);
+
+    expect($t->lastRequest()['data']['status'])->toBe(1);
+});
+
+it('CHẶN TRƯỚC KHI GỌI MẠNG khi status ngoài khoảng 1–5', function (): void {
+    $t = new FakeTransport;
+
+    expect(fn () => zbs($t)->templates(status: 9))
+        ->toThrow(ConfigurationException::class, '1–5');
+
+    expect($t->requests)->toBeEmpty();
+});
+
+it('giới hạn limit ở mức Zalo cho phép', function (): void {
+    $t = new FakeTransport;
+    $t->push(['error' => 0, 'data' => []]);
+
+    zbs($t)->templates(limit: 500);
+
+    expect($t->lastRequest()['data']['limit'])->toBe(100);
+});
+
+it('template() lấy ra từ danh sách, không gọi endpoint riêng', function (): void {
+    $t = new FakeTransport;
+    $t->push(['error' => 0, 'data' => [
+        ['templateId' => 111, 'templateName' => 'Một'],
+        ['templateId' => 222, 'templateName' => 'Hai'],
+    ]]);
+
+    $found = zbs($t)->template('222');
+
+    expect($found['templateName'])->toBe('Hai')
+        ->and($t->lastRequest()['url'])->toBe('https://business.openapi.zalo.me/template/all');
+});
+
+it('template() trả null khi không có id đó', function (): void {
+    // Trả null thay vì ném: gọi lệnh với id gõ nhầm là chuyện thường, và
+    // người dùng cần thấy "không có id này" chứ không phải một stack trace.
+    $t = new FakeTransport;
+    $t->push(['error' => 0, 'data' => [['templateId' => 111]]]);
+
+    expect(zbs($t)->template('999'))->toBeNull();
 });
