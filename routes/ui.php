@@ -6,6 +6,7 @@ use FieldVn\Zalo\Laravel\Http\Controllers\AuthorizeController;
 use FieldVn\Zalo\Laravel\Http\Controllers\BotController;
 use FieldVn\Zalo\Laravel\Http\Controllers\DashboardController;
 use FieldVn\Zalo\Laravel\Http\Controllers\OaController;
+use FieldVn\Zalo\Laravel\Http\Controllers\ZbsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,6 +25,11 @@ Route::put('oas/{oa}', [OaController::class, 'update'])->name('zalo.oas.update')
 Route::post('oas/{oa}/send', [OaController::class, 'send'])->name('zalo.oas.send');
 Route::post('oas/{oa}/test', [OaController::class, 'test'])->name('zalo.oas.test');
 Route::post('oas/{oa}/toggle', [OaController::class, 'toggle'])->name('zalo.oas.toggle');
+
+Route::get('oas/{oa}/zbs', [ZbsController::class, 'index'])->name('zalo.oas.zbs');
+Route::post('oas/{oa}/zbs/send', [ZbsController::class, 'send'])->name('zalo.oas.zbs.send');
+Route::post('oas/{oa}/zbs/status', [ZbsController::class, 'status'])->name('zalo.oas.zbs.status');
+
 Route::delete('oas/{oa}', [OaController::class, 'destroy'])->name('zalo.oas.destroy');
 
 Route::get('bots', [BotController::class, 'index'])->name('zalo.bots.index');

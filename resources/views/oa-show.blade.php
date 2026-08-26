@@ -72,11 +72,23 @@
                 </form>
             @endif
 
+            @if ($oa->token !== null)
+                <a href="{{ route('zalo.oas.zbs', $oa) }}" class="zl-btn">ZBS Template Message</a>
+            @endif
+
             <form method="POST" action="{{ route('zalo.oas.toggle', $oa) }}">
                 @csrf
                 <button class="zl-btn">{{ $oa->is_active ? 'Tắt' : 'Bật' }}</button>
             </form>
         </div>
+
+        @if ($oa->token !== null)
+            <p class="zl-hint" style="margin-bottom:0">
+                Gửi tin thử ở dưới chỉ tới được người <strong>đã từng nhắn cho OA</strong>.
+                Muốn gửi tới một số điện thoại bất kỳ thì phải qua
+                <a href="{{ route('zalo.oas.zbs', $oa) }}">ZBS Template Message</a>.
+            </p>
+        @endif
     </div>
 
     <h2>Gửi tin thử</h2>

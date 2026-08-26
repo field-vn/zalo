@@ -23,6 +23,9 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ### Changed
 
+- **README sắp lại theo trình tự làm việc thật**: phần cấu hình bằng giao diện
+  lên đầu vì đó là việc làm trước tiên, phần API cho developer tách xuống dưới.
+  Bổ sung mục ZBS, trước đây README vẫn ghi là chưa hỗ trợ.
 - `templates()` mặc định trả về template ở **mọi trạng thái**. Lọc sẵn theo
   `ENABLE` khiến OA đang chờ duyệt nhận kết quả rỗng và hiểu nhầm thành chưa
   tạo mẫu nào. Dùng `--enabled` (thay cho `--all` cũ) để chỉ lấy mẫu dùng được.
@@ -30,6 +33,14 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
   `/template/all` đã trả về `listParams` đầy đủ. Trả về `array|null`.
 
 ### Added
+
+- **Giao diện ZBS** tại `/zalo/oas/{slug}/zbs`: danh sách mẫu kèm trạng thái,
+  hạn mức còn lại, form gửi thử theo số điện thoại với ô nhập dựng theo tham
+  số của mẫu, và ô tra trạng thái giao tin. Mặc định `development`; gửi
+  `production` cần tick thêm một ô xác nhận.
+
+  Mẫu chưa duyệt trả về danh sách tham số rỗng — khi đó form chuyển sang ô
+  nhập JSON để không kẹt cho tới lúc duyệt xong.
 
 - Command `zalo:zbs:status <msg_id>` — tra trạng thái GIAO tin. `zbs:send` trả
   `msg_id` khi Zalo *nhận* tin, không phải khi người dùng *nhận được*; khi tin
