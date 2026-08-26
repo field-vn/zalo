@@ -51,6 +51,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | ZBS Template Message
+    |--------------------------------------------------------------------------
+    |
+    | Gửi tin theo mẫu tới SỐ ĐIỆN THOẠI — kênh duy nhất tới được người chưa
+    | từng tương tác với OA. Mỗi tin TÍNH PHÍ, trừ vào số dư ZBS Account.
+    |
+    | MẶC ĐỊNH LÀ `development`, và đó là chủ ý:
+    |   development → chỉ gửi tới quản trị viên OA/App, miễn phí
+    |   production  → gửi cho khách thật, mất tiền
+    |
+    | Quên đổi sang production thì tin không tới khách — khó chịu nhưng phát
+    | hiện ngay. Ngược lại, mặc định production mà quên thì một vòng lặp sai
+    | lúc dev là một hoá đơn thật, và bạn chỉ biết khi nhận sao kê.
+    |
+    */
+
+    'zbs' => [
+        'mode' => env('ZALO_ZBS_MODE', 'development'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Zalo Bot
     |--------------------------------------------------------------------------
     |
@@ -81,6 +103,7 @@ return [
         'oauth' => 'https://oauth.zaloapp.com/v4',
         'oauth_consent' => 'https://oauth.zaloapp.com/v4/oa/permission',
         'bot' => 'https://bot-api.zapps.me/bot',
+        'zbs' => 'https://business.openapi.zalo.me',
     ],
 
     /*

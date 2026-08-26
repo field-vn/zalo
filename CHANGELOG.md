@@ -10,6 +10,28 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-08-26
+
+### Added
+
+- **ZBS Template Message** — gửi tin theo mẫu tới số điện thoại, kênh duy nhất
+  tới được người chưa từng tương tác với OA.
+
+  ```php
+  $oa = Zalo::oa('cskh');
+
+  $oa->zbs()->templates();                                  // template đã duyệt
+  $oa->zbs()->template($id);                                // tham số bắt buộc
+  $oa->zbs()->send('0987654321', $id, ['otp' => '123456']);
+  ```
+
+  Mặc định chạy ở `development`: miễn phí, chỉ gửi tới quản trị viên OA/App.
+  Gửi cho khách thật cần đặt `ZALO_ZBS_MODE=production`.
+
+- `PhoneNumber::normalize()` — chấp nhận `0987…`, `+8498…`, `8498…` và mọi
+  cách viết có dấu cách hay gạch ngang, quy về `84987654321` như Zalo yêu cầu.
+- Commands `zalo:zbs:templates` và `zalo:zbs:send`.
+
 ## [0.2.0] — 2026-08-25
 
 ### Fixed
@@ -82,7 +104,8 @@ Bản phát hành đầu tiên.
   01/01/2026, thời điểm Zalo hợp nhất chúng cùng ZNS thành ZBS Template
   Message. ZBS Template Message chưa được hỗ trợ.
 
-[Unreleased]: https://github.com/field-vn/zalo/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/field-vn/zalo/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/field-vn/zalo/releases/tag/v0.3.0
 [0.2.0]: https://github.com/field-vn/zalo/releases/tag/v0.2.0
 [0.1.1]: https://github.com/field-vn/zalo/releases/tag/v0.1.1
 [0.1.0]: https://github.com/field-vn/zalo/releases/tag/v0.1.0

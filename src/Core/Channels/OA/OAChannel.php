@@ -10,6 +10,7 @@ use FieldVn\Zalo\Core\Auth\RefreshingTokenProvider;
 use FieldVn\Zalo\Core\Channels\OA\Resources\MessageResource;
 use FieldVn\Zalo\Core\Channels\OA\Resources\TagResource;
 use FieldVn\Zalo\Core\Channels\OA\Resources\UploadResource;
+use FieldVn\Zalo\Core\Channels\OA\Resources\ZbsResource;
 use FieldVn\Zalo\Core\Channels\OA\Resources\UserResource;
 use FieldVn\Zalo\Core\Exceptions\ZaloException;
 use FieldVn\Zalo\Core\Http\PendingRequest;
@@ -46,6 +47,22 @@ final class OAChannel implements Channel
     public function users(): UserResource
     {
         return new UserResource($this->request());
+    }
+
+    /**
+     * ZBS Template Message — gửi tin theo mẫu tới số điện thoại.
+     *
+     * Dùng access token của OA nhưng endpoint nằm ở domain khác, nên nhận
+     * transport trực tiếp thay vì đi qua request() vốn đã gắn baseUrl của OA.
+     */
+    public function zbs(): ZbsResource
+    {
+        return new ZbsResource(
+            transport: $this->transport,
+            headers: fn (): array => ['access_token' => $this->tokens->accessToken()],
+            baseUrl: (string) (config('zalo.endpoints.zbs') ?? 'https://business.openapi.zalo.me'),
+            mode: (string) (config('zalo.zbs.mode') ?? ZbsResource::MODE_DEVELOPMENT),
+        );
     }
 
     /** Upload ảnh lấy attachment_id — bắt buộc trước khi gửi ảnh qua OA. */
