@@ -26,6 +26,19 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
   `include` để không sinh ra cặp PHP/Laravel không tồn tại. Bổ sung
   `pdo_sqlite`, `sqlite3` và nâng `actions/checkout` lên v5.
 
+### Removed
+
+- **Bỏ hỗ trợ Laravel 10 và 11.** Hai nhánh này đã hết hạn hỗ trợ bảo mật
+  (Laravel 11 từ 12/03/2026), nên mọi bản phát hành của chúng đều mang
+  advisory không bao giờ được vá. Composer bản mới từ chối cài chúng theo mặc
+  định — tức là lời hứa "hỗ trợ Laravel 10, 11" trong README thực tế không ai
+  dùng được.
+
+  Yêu cầu mới: **Laravel 12 hoặc 13**, PHP 8.2+.
+
+  Dự án đang ghim `^0.2` mà chạy Laravel 11 sẽ tự dừng ở `0.2.2` khi
+  `composer update` — không có gì hỏng, chỉ là không nhận bản mới.
+
 ## [0.2.2] — 2026-08-26
 
 ### Fixed

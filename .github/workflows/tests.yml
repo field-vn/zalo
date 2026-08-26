@@ -21,12 +21,11 @@ jobs:
         #
         # Dùng `include` thay vì tổ hợp + `exclude` để không sinh ra cặp
         # PHP/Laravel không tồn tại.
+        #
+        # Không còn Laravel 10 và 11: cả hai đã hết hạn hỗ trợ bảo mật
+        # (L11 từ 12/03/2026), nên mọi bản phát hành của chúng đều dính
+        # advisory chưa vá và composer từ chối cài theo mặc định.
         include:
-          - { php: '8.2', laravel: '10.*', testbench: '8.*' }
-          - { php: '8.3', laravel: '10.*', testbench: '8.*' }
-          - { php: '8.2', laravel: '11.*', testbench: '9.*' }
-          - { php: '8.3', laravel: '11.*', testbench: '9.*' }
-          - { php: '8.4', laravel: '11.*', testbench: '9.*' }
           - { php: '8.2', laravel: '12.*', testbench: '10.*' }
           - { php: '8.3', laravel: '12.*', testbench: '10.*' }
           - { php: '8.4', laravel: '12.*', testbench: '10.*' }

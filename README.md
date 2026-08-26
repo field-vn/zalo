@@ -40,7 +40,7 @@ kèm giao diện cấu hình không cần viết code.
 ## Yêu cầu
 
 - PHP 8.2+
-- Laravel 10, 11, 12 hoặc 13
+- Laravel 12 hoặc 13
 
 ---
 
