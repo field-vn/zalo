@@ -125,15 +125,16 @@ class ZbsSendCommand extends Command
      */
     private function parseData(): array
     {
-        $raw = $this->stringArgument('data');
-
-        /** @var array<string, string|int> $decoded */
-        $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        // KHÔNG khai @var trước khi kiểm: json_decode trả về mixed, '"abc"'
+        // ra string còn '123' ra int. Khai sớm là nói dối trình phân tích,
+        // và nó sẽ coi is_array() bên dưới là thừa.
+        $decoded = json_decode($this->stringArgument('data'), true, 512, JSON_THROW_ON_ERROR);
 
         if (! is_array($decoded) || $decoded === []) {
             throw new JsonException('template_data phải là một object JSON không rỗng.');
         }
 
+        /** @var array<string, string|int> $decoded */
         return $decoded;
     }
 }
