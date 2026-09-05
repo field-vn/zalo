@@ -1,5 +1,6 @@
 /vendor
 /build
+.worktrees
 /.idea
 /.vscode
 composer.lock

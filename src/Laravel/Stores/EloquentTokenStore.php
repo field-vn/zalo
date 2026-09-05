@@ -9,6 +9,8 @@ use FieldVn\Zalo\Contracts\TokenStore;
 use FieldVn\Zalo\Core\Auth\TokenPair;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
 use FieldVn\Zalo\Laravel\Models\ZaloOaToken;
+use FieldVn\Zalo\Laravel\Support\TokenStatusCache;
+use Throwable;
 
 final class EloquentTokenStore implements TokenStore
 {
@@ -53,12 +55,14 @@ final class EloquentTokenStore implements TokenStore
         );
 
         $this->oa->unsetRelation('token');
+        $this->invalidateTokenStatusCache();
     }
 
     public function forget(): void
     {
         $this->record()?->delete();
         $this->oa->unsetRelation('token');
+        $this->invalidateTokenStatusCache();
     }
 
     public function recordFailure(string $message): void
@@ -87,5 +91,18 @@ final class EloquentTokenStore implements TokenStore
     private function record(): ?ZaloOaToken
     {
         return ZaloOaToken::query()->where('oa_id', $this->oa->getKey())->first();
+    }
+
+    /**
+     * Xoá cache trạng thái token sau khi ghi/xoá thành công.
+     * Nuốt lỗi nếu container chưa boot — đường ghi token không được crash vì cache.
+     */
+    private function invalidateTokenStatusCache(): void
+    {
+        try {
+            app(TokenStatusCache::class)->forgetFor($this->oa);
+        } catch (Throwable) {
+            //
+        }
     }
 }

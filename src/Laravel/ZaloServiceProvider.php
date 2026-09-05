@@ -21,12 +21,17 @@ use FieldVn\Zalo\Laravel\Console\InstallCommand;
 use FieldVn\Zalo\Laravel\Console\OaAddCommand;
 use FieldVn\Zalo\Laravel\Console\OaListCommand;
 use FieldVn\Zalo\Laravel\Console\OaTestCommand;
+use FieldVn\Zalo\Laravel\Console\PruneContactsCommand;
 use FieldVn\Zalo\Laravel\Console\RefreshTokensCommand;
 use FieldVn\Zalo\Laravel\Console\StatusCommand;
 use FieldVn\Zalo\Laravel\Console\ZbsSendCommand;
 use FieldVn\Zalo\Laravel\Console\ZbsStatusCommand;
 use FieldVn\Zalo\Laravel\Console\ZbsTemplatesCommand;
+use FieldVn\Zalo\Laravel\Events\ZaloFollowerAdded;
+use FieldVn\Zalo\Laravel\Events\ZaloFollowerRemoved;
+use FieldVn\Zalo\Laravel\Events\ZaloMessageReceived;
 use FieldVn\Zalo\Laravel\Http\Middleware\Authorize;
+use FieldVn\Zalo\Laravel\Listeners\UpdateContactOnWebhookEvent;
 use FieldVn\Zalo\Laravel\Managers\ZaloManager;
 use FieldVn\Zalo\Laravel\Models\ZaloBot;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
@@ -34,6 +39,7 @@ use FieldVn\Zalo\Laravel\Repositories\EloquentBotRepository;
 use FieldVn\Zalo\Laravel\Repositories\EloquentOaRepository;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -109,6 +115,10 @@ class ZaloServiceProvider extends ServiceProvider
         $this->registerRoutes();
         $this->registerScheduler();
 
+        Event::listen(ZaloFollowerAdded::class, [UpdateContactOnWebhookEvent::class, 'handleFollow']);
+        Event::listen(ZaloFollowerRemoved::class, [UpdateContactOnWebhookEvent::class, 'handleUnfollow']);
+        Event::listen(ZaloMessageReceived::class, [UpdateContactOnWebhookEvent::class, 'handleMessage']);
+
         if ($this->app->runningInConsole()) {
             $this->registerPublishing();
 
@@ -130,6 +140,7 @@ class ZaloServiceProvider extends ServiceProvider
                 ZbsTemplatesCommand::class,
                 ZbsSendCommand::class,
                 ZbsStatusCommand::class,
+                PruneContactsCommand::class,
             ]);
         }
     }
