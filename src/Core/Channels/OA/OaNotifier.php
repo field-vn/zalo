@@ -53,7 +53,7 @@ final class OaNotifier
 
             // 2. Token stale / missing → chỉ ZBS (nếu đủ điều kiện).
             if ($status->remainingMinutes < $staleBelow) {
-                if ($this->canSendZbs($phone, $message)) {
+                if ($phone !== null && $this->canSendZbs($message)) {
                     $channel = NotifyResult::CHANNEL_ZBS;
 
                     return $this->sendZbs($phone, $message);
@@ -82,7 +82,7 @@ final class OaNotifier
             }
 
             // 4. Fallback ZBS.
-            if ($this->canSendZbs($phone, $message)) {
+            if ($phone !== null && $this->canSendZbs($message)) {
                 $channel = NotifyResult::CHANNEL_ZBS;
 
                 return $this->sendZbs($phone, $message);
@@ -112,10 +112,9 @@ final class OaNotifier
         );
     }
 
-    private function canSendZbs(?string $phone, ZaloOutboundMessage $message): bool
+    private function canSendZbs(ZaloOutboundMessage $message): bool
     {
-        return $phone !== null
-            && $this->nonEmpty($message->templateId) !== null
+        return $this->nonEmpty($message->templateId) !== null
             && $message->templateData !== [];
     }
 
@@ -145,10 +144,8 @@ final class OaNotifier
         }
 
         $windowDays = (int) config('zalo.notifier.cs_window_days', 7);
-        $cutoff = now()->subDays($windowDays);
 
-        return $contact->last_interaction_at === null
-            || $contact->last_interaction_at->lt($cutoff);
+        return $contact->last_interaction_at->lt(now()->subDays($windowDays));
     }
 
     private function messageIdFrom(Response $response): mixed
