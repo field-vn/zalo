@@ -6,9 +6,9 @@ use FieldVn\Zalo\Core\Webhook\WebhookEvent;
 use FieldVn\Zalo\Laravel\Events\ZaloFollowerAdded;
 use FieldVn\Zalo\Laravel\Events\ZaloFollowerRemoved;
 use FieldVn\Zalo\Laravel\Events\ZaloMessageReceived;
-use FieldVn\Zalo\Laravel\Events\ZaloWebhookReceived;
 use FieldVn\Zalo\Laravel\Models\ZaloContact;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
+use FieldVn\Zalo\Laravel\Support\WebhookDispatcher;
 use FieldVn\Zalo\Support\Table;
 
 function makeContactOa(array $attributes = []): ZaloOa
@@ -181,21 +181,36 @@ it('user_received_message chỉ touch last_interaction_at, không đổi is_foll
     $oldInteraction = $before->last_interaction_at->copy()->subMinute();
     $before->forceFill(['last_interaction_at' => $oldInteraction])->save();
 
+    // Real Zalo shape: OA→user delivery receipt (sender=OA, recipient=user).
     $received = WebhookEvent::fromPayload([
         'app_id' => 'app-1',
         'event_name' => 'user_received_message',
         'timestamp' => (string) (time() * 1000),
-        'sender' => ['id' => 'user-recv-1'],
-        'recipient' => ['id' => 'oa-recv'],
+        'oa_id' => 'oa-recv',
+        'sender' => ['id' => 'oa-recv'],
+        'recipient' => ['id' => 'user-recv-1'],
+        'user_id_by_app' => 'user-recv-1',
         'message' => ['msg_id' => 'msg-r1'],
     ]);
 
-    ZaloWebhookReceived::dispatch($received, $oa);
+    expect($received->oaId)->toBe('oa-recv')
+        ->and($received->userId())->toBe('user-recv-1');
 
-    $after = $before->fresh();
+    app(WebhookDispatcher::class)->dispatch($received);
+
+    $after = ZaloContact::query()
+        ->where('oa_id', $oa->getKey())
+        ->where('zalo_user_id', 'user-recv-1')
+        ->firstOrFail();
 
     expect($after->is_following)->toBeFalse()
-        ->and($after->last_interaction_at->greaterThan($oldInteraction))->toBeTrue();
+        ->and($after->last_interaction_at->greaterThan($oldInteraction))->toBeTrue()
+        ->and(
+            ZaloContact::query()
+                ->where('oa_id', $oa->getKey())
+                ->where('zalo_user_id', 'oa-recv')
+                ->exists()
+        )->toBeFalse();
 });
 
 it('oa_send_* không tạo contact qua handleMessage', function (): void {
