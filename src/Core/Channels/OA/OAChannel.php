@@ -125,4 +125,12 @@ final class OAChannel implements Channel
 
         return app(TokenStatusCache::class)->remember($oa);
     }
+
+    /**
+     * Chọn kênh rồi gửi: ưu tiên OA CS theo user id, fallback ZBS theo SĐT.
+     */
+    public function notifier(): OaNotifier
+    {
+        return new OaNotifier($this);
+    }
 }

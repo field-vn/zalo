@@ -10,6 +10,31 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-09-05
+
+### Added
+
+- **`TokenStatus` + cache ngắn hạn** — `OAChannel::tokenStatus()` trả
+  `remainingMinutes` (missing = `-1`). Cache key `zalo.token_status.{zl_oas.id}`,
+  TTL `zalo.notifier.token_status_cache_ttl` (mặc định 90s). Invalidate khi
+  `EloquentTokenStore::put()` / `forget()`.
+- **Bảng `zl_contacts`** — theo dõi `is_following` và `last_interaction_at` từ
+  webhook follow / unfollow / message / user_seen_message. Unique
+  `(oa_id, zalo_user_id)`.
+- **`OaNotifier`** — chọn kênh rồi gửi: ưu tiên OA CS theo `zalo_user_id`,
+  fallback ZBS theo SĐT. Token stale / contact unfollow / ngoài cửa sổ CS →
+  ZBS khi đủ điều kiện. CS fail **không** fallback ZBS.
+
+  ```php
+  $result = Zalo::oa('cskh')->notifier()->send(
+      new ZaloRecipient(zaloUserId: $userId, phone: $phone),
+      new ZaloOutboundMessage(text: 'Xin chào', templateId: $id, templateData: [...]),
+  );
+  ```
+
+- Config `zalo.notifier.*`: `stale_below_minutes` (60), `fresh_buffer_minutes`
+  (1440), `cs_window_days` (7), `contact_prune_days` (180).
+
 ### Fixed
 
 - **CI chưa từng chạy được test.** Mọi job matrix chết ở `composer update`,
@@ -178,7 +203,8 @@ Bản phát hành đầu tiên.
   01/01/2026, thời điểm Zalo hợp nhất chúng cùng ZNS thành ZBS Template
   Message. ZBS Template Message chưa được hỗ trợ.
 
-[Unreleased]: https://github.com/field-vn/zalo/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/field-vn/zalo/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/field-vn/zalo/releases/tag/v0.3.0
 [0.2.2]: https://github.com/field-vn/zalo/releases/tag/v0.2.2
 [0.2.1]: https://github.com/field-vn/zalo/releases/tag/v0.2.1
 [0.2.0]: https://github.com/field-vn/zalo/releases/tag/v0.2.0
