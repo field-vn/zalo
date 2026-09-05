@@ -23,5 +23,6 @@ it('liệt kê mọi bảng package quản lý', function (): void {
         'zl_bot_chats',
         'zl_audit_logs',
         'zl_webhook_logs',
+        'zl_contacts',
     ]);
 });

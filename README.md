@@ -197,6 +197,26 @@ Zalo::oa('cskh')->messages()->text($userId, 'Đơn hàng đã được xác nh�
 Zalo::bot('support')->text($chatId, 'Xin chào');
 ```
 
+**Notifier — chọn CS hoặc ZBS giúp bạn.** Có `zalo_user_id` và token còn hạn thì
+gửi tin Tư vấn; token sắp hết / user unfollow / ngoài cửa sổ CS thì fallback
+ZBS theo số điện thoại (cần `templateId` + `templateData`). CS lỗi thì dừng —
+không tự nhảy sang ZBS để tránh gửi đôi.
+
+```php
+use FieldVn\Zalo\Core\Channels\OA\ZaloOutboundMessage;
+use FieldVn\Zalo\Core\Channels\OA\ZaloRecipient;
+use FieldVn\Zalo\Laravel\Facades\Zalo;
+
+$result = Zalo::oa('cskh')->notifier()->send(
+    new ZaloRecipient(zaloUserId: $userId, phone: $phone),
+    new ZaloOutboundMessage(
+        text: 'Đơn hàng đã được xác nhận',
+        templateId: $templateId,
+        templateData: ['order_code' => 'DH-123'],
+    ),
+);
+```
+
 Hoặc dùng helper toàn cục:
 
 ```php

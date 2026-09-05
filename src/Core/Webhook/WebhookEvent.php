@@ -7,9 +7,12 @@ namespace FieldVn\Zalo\Core\Webhook;
 /**
  * Một sự kiện webhook đã chuẩn hoá.
  *
- * Zalo đặt id của OA ở chỗ khác nhau tuỳ loại sự kiện — `recipient.id` với
- * tin nhắn, `oa_id` với follow/unfollow. Class này gom lại một chỗ để code
- * nghiệp vụ không phải nhớ từng ngoại lệ.
+ * Zalo đặt id của OA / user ở chỗ khác nhau tuỳ loại sự kiện:
+ * - `user_send_*`: sender=user, recipient=OA
+ * - `user_received_message` / `user_seen_message`: sender=OA, recipient=user
+ *   (thường kèm `oa_id`, `user_id_by_app`)
+ * - follow/unfollow: `oa_id` + `follower.id`
+ * - `oa_*`: sender=OA
  */
 final class WebhookEvent
 {
@@ -37,8 +40,28 @@ final class WebhookEvent
     /** @param array<string, mixed> $payload */
     private static function extractOaId(array $payload): string
     {
+        $eventName = (string) ($payload['event_name'] ?? '');
+
+        // Biên nhận giao tin OA→user: OA là bên gửi (hoặc trường oa_id).
+        if (self::isDeliveryReceipt($eventName)) {
+            if (isset($payload['oa_id'])) {
+                return (string) $payload['oa_id'];
+            }
+
+            if (isset($payload['sender']['id'])) {
+                return (string) $payload['sender']['id'];
+            }
+
+            return '';
+        }
+
         if (isset($payload['oa_id'])) {
             return (string) $payload['oa_id'];
+        }
+
+        // Tin nhắn do OA gửi (echo): OA là bên gửi — trước recipient (user).
+        if (isset($payload['sender']['id']) && str_starts_with($eventName, 'oa_')) {
+            return (string) $payload['sender']['id'];
         }
 
         // Tin nhắn từ người dùng: OA là bên nhận.
@@ -46,12 +69,13 @@ final class WebhookEvent
             return (string) $payload['recipient']['id'];
         }
 
-        // Tin nhắn do OA gửi (echo): OA là bên gửi.
-        if (isset($payload['sender']['id']) && str_starts_with((string) ($payload['event_name'] ?? ''), 'oa_')) {
-            return (string) $payload['sender']['id'];
-        }
-
         return '';
+    }
+
+    private static function isDeliveryReceipt(string $eventName): bool
+    {
+        return $eventName === 'user_received_message'
+            || $eventName === 'user_seen_message';
     }
 
     public function isFromUser(): bool
@@ -78,6 +102,21 @@ final class WebhookEvent
     /** Id người dùng Zalo liên quan tới sự kiện. */
     public function userId(): ?string
     {
+        // Biên nhận giao tin: user là bên nhận (không phải sender=OA).
+        // Prefer recipient.id (OA user id, same space as follower.id / sender.id)
+        // over user_id_by_app (app-scoped id that does not match zl_contacts.zalo_user_id).
+        if (self::isDeliveryReceipt($this->name)) {
+            if (isset($this->payload['recipient']['id'])) {
+                return (string) $this->payload['recipient']['id'];
+            }
+
+            if (isset($this->payload['user_id_by_app'])) {
+                return (string) $this->payload['user_id_by_app'];
+            }
+
+            return null;
+        }
+
         return match (true) {
             isset($this->payload['follower']['id']) => (string) $this->payload['follower']['id'],
             isset($this->payload['sender']['id']) => (string) $this->payload['sender']['id'],

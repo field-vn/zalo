@@ -287,6 +287,19 @@ it('hiện MÃ LỖI khi Zalo từ chối, không chỉ câu chữ', function ()
         ->assertSessionHas('zalo.error', fn (string $m): bool => str_contains($m, '400'));
 });
 
+it('nút Kiểm tra gọi getoa v2.0, không phải v3.0', function (): void {
+    // Zalo chỉ có /v2.0/oa/getoa. Gọi /v3.0 thì trả empty or invalid API.
+    $fake = fakeNet()->push(['error' => 0, 'data' => ['name' => 'OA Org 6']]);
+    $oa = anOa('org-6');
+
+    test()->withHeaders(auth2())
+        ->from(route('zalo.oas.index'))
+        ->post(route('zalo.oas.test', $oa))
+        ->assertSessionHas('zalo.success');
+
+    expect($fake->lastRequest()['url'])->toBe('https://openapi.zalo.me/v2.0/oa/getoa');
+});
+
 it('gửi tin thử qua OA dùng endpoint tin tư vấn', function (): void {
     $fake = fakeNet()->push(['error' => 0, 'data' => []]);
     $oa = anOa();

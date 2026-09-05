@@ -203,4 +203,23 @@ return [
         'log' => (bool) env('ZALO_WEBHOOK_LOG', false),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Notifier (OA CS ưu tiên, ZBS fallback)
+    |--------------------------------------------------------------------------
+    |
+    | fresh_buffer_minutes: ngưỡng "tươi" (mặc định 24h) — app dùng cho badge.
+    | stale_below_minutes: dưới ngưỡng này không thử OA CS, fallback ZBS.
+    | cs_window_days: OpenAPI từ chối CS sau ~7 ngày không tương tác.
+    | token_status_cache_ttl: giây. 0 = không cache.
+    |
+    */
+    'notifier' => [
+        'fresh_buffer_minutes' => (int) env('ZALO_NOTIFIER_FRESH_BUFFER_MINUTES', 1440),
+        'stale_below_minutes' => (int) env('ZALO_NOTIFIER_STALE_BELOW_MINUTES', 60),
+        'cs_window_days' => (int) env('ZALO_NOTIFIER_CS_WINDOW_DAYS', 7),
+        'token_status_cache_ttl' => (int) env('ZALO_TOKEN_STATUS_CACHE_TTL', 90),
+        'contact_prune_days' => (int) env('ZALO_CONTACT_PRUNE_DAYS', 180),
+    ],
+
 ];
