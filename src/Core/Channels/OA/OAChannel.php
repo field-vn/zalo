@@ -79,10 +79,15 @@ final class OAChannel implements Channel
         return new TagResource($this->request());
     }
 
-    /** Thông tin OA — dùng cho nút "Test kết nối" và để tự điền tên/avatar. */
+    /**
+     * Thông tin OA — dùng cho nút "Test kết nối" và để tự điền tên/avatar.
+     *
+     * Vẫn là v2.0. Zalo chỉ chuyển Message API sang v3.0; /v3.0/oa/getoa
+     * không tồn tại và trả "You are accessing an empty or invalid API".
+     */
     public function info(): Response
     {
-        return $this->request()->get('/v3.0/oa/getoa')->throwIfFailed();
+        return $this->request()->get('/v2.0/oa/getoa')->throwIfFailed();
     }
 
     public function ping(): bool
