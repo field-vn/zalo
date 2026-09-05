@@ -15,6 +15,9 @@ use FieldVn\Zalo\Core\Channels\OA\Resources\ZbsResource;
 use FieldVn\Zalo\Core\Exceptions\ZaloException;
 use FieldVn\Zalo\Core\Http\PendingRequest;
 use FieldVn\Zalo\Core\Http\Response;
+use FieldVn\Zalo\Laravel\Models\ZaloOa;
+use FieldVn\Zalo\Laravel\Support\TokenStatus;
+use FieldVn\Zalo\Laravel\Support\TokenStatusCache;
 use Illuminate\Support\Traits\Macroable;
 
 /**
@@ -105,5 +108,21 @@ final class OAChannel implements Channel
     public function tokens(): RefreshingTokenProvider
     {
         return $this->tokens;
+    }
+
+    /**
+     * Trạng thái access token (có cache ngắn hạn).
+     *
+     * Resolve OA theo slug — không đổi chữ ký constructor. OA đã xoá → missing.
+     */
+    public function tokenStatus(): TokenStatus
+    {
+        $oa = ZaloOa::query()->where('slug', $this->slug)->first();
+
+        if ($oa === null) {
+            return TokenStatus::missing();
+        }
+
+        return app(TokenStatusCache::class)->remember($oa);
     }
 }
