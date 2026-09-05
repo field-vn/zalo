@@ -1,12 +1,17 @@
 {
     "name": "field-vn/zalo",
     "description": "Zalo OA & Bot SDK cho Laravel — quản lý nhiều OA, tự refresh token, có UI cấu hình",
+    "type": "library",
     "keywords": [
         "laravel",
         "php",
         "zalo",
         "zalo-oa",
         "zalo-bot",
+        "zbs",
+        "sdk",
+        "oauth",
+        "webhook",
         "vietnam",
         "chatbot"
     ],
@@ -21,7 +26,8 @@
     "support": {
         "issues": "https://github.com/field-vn/zalo/issues",
         "source": "https://github.com/field-vn/zalo",
-        "docs": "https://github.com/field-vn/zalo#readme"
+        "docs": "https://github.com/field-vn/zalo#readme",
+        "security": "https://github.com/field-vn/zalo/security/advisories/new"
     },
     "require": {
         "php": "^8.2",
