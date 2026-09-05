@@ -197,3 +197,36 @@ it('rỗng cả hai → skipped recipient_empty', function (): void {
         ->and($result->reason)->toBe('recipient_empty')
         ->and($channel->notifier())->toBeInstanceOf(OaNotifier::class);
 });
+
+it('following nhưng last_interaction_at quá cs_window_days → ZBS, không CS', function (): void {
+    $fake = notifierFakeTransport()
+        ->push(['error' => 0, 'data' => ['msg_id' => 'zbs-window']]);
+
+    $oa = notifierOa(['slug' => 'cskh-window', 'oa_id' => 'oa-window']);
+    putNotifierToken($oa, new DateTimeImmutable('+48 hours'));
+
+    ZaloContact::create([
+        'oa_id' => $oa->getKey(),
+        'zalo_user_id' => 'user-1',
+        'is_following' => true,
+        'first_seen_at' => now()->subDays(30),
+        'last_interaction_at' => now()->subDays(8),
+    ]);
+
+    $channel = resolveNotifierChannel('cskh-window');
+
+    $result = $channel->notifier()->send(
+        new ZaloRecipient(zaloUserId: 'user-1', phone: '0987654321'),
+        new ZaloOutboundMessage(
+            text: 'ngoài cửa sổ CS',
+            templateId: 'tpl-1',
+            templateData: ['otp' => '4242'],
+        ),
+    );
+
+    expect($result->ok)->toBeTrue()
+        ->and($result->channel)->toBe(NotifyResult::CHANNEL_ZBS)
+        ->and($result->messageId)->toBe('zbs-window')
+        ->and(requestsMatching($fake, '/v3.0/oa/message/cs'))->toHaveCount(0)
+        ->and(requestsMatching($fake, '/message/template'))->toHaveCount(1);
+});

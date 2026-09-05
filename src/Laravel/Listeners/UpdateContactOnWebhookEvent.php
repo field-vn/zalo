@@ -7,41 +7,20 @@ namespace FieldVn\Zalo\Laravel\Listeners;
 use FieldVn\Zalo\Laravel\Events\ZaloFollowerAdded;
 use FieldVn\Zalo\Laravel\Events\ZaloFollowerRemoved;
 use FieldVn\Zalo\Laravel\Events\ZaloMessageReceived;
-use FieldVn\Zalo\Laravel\Events\ZaloWebhookReceived;
 use FieldVn\Zalo\Laravel\Models\ZaloContact;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
 
 /**
- * Đồng bộ bảng contacts từ webhook follow / message / received / seen.
+ * Đồng bộ bảng contacts từ webhook follow / unfollow / tin người dùng gửi.
  *
- * handleWebhookReceived chỉ xử lý user_received_message và user_seen_message
- * (touch last_interaction_at, không đổi is_following) — tránh đua với
- * follow/unfollow vì ZaloWebhookReceived được bắn trước event cụ thể.
+ * `last_interaction_at` chỉ cập nhật khi người dùng thật sự tương tác
+ * (follow, `user_send_*`). Không đụng biên nhận `user_received_message` /
+ * `user_seen_message` — đó là OA→user, không gia hạn cửa sổ CS 7 ngày của
+ * OpenAPI. Nếu cứ touch theo biên nhận, notifier sẽ gọi CS sau khi Zalo đã
+ * từ chối, rồi không được fallback ZBS.
  */
 final class UpdateContactOnWebhookEvent
 {
-    /** Sự kiện generic: chỉ touch tương tác cho received/seen. */
-    public function handleWebhookReceived(ZaloWebhookReceived $e): void
-    {
-        if ($e->oa === null) {
-            return;
-        }
-
-        $name = $e->event->name;
-
-        if ($name !== 'user_received_message' && $name !== 'user_seen_message') {
-            return;
-        }
-
-        $userId = $e->event->userId();
-
-        if ($userId === null || $userId === '') {
-            return;
-        }
-
-        $this->touchInteraction($e->oa, $userId);
-    }
-
     /** Người dùng quan tâm OA. */
     public function handleFollow(ZaloFollowerAdded $e): void
     {
@@ -103,15 +82,6 @@ final class UpdateContactOnWebhookEvent
         }
 
         $this->upsertInteraction($e->oa, $userId);
-    }
-
-    /** Cập nhật last_interaction_at nếu contact đã tồn tại — không tạo mới. */
-    private function touchInteraction(ZaloOa $oa, string $userId): void
-    {
-        ZaloContact::query()
-            ->where('oa_id', $oa->getKey())
-            ->where('zalo_user_id', $userId)
-            ->update(['last_interaction_at' => now()]);
     }
 
     /** Upsert tương tác: tạo mới thì ghi first_seen_at, không đổi is_following khi update. */

@@ -30,7 +30,6 @@ use FieldVn\Zalo\Laravel\Console\ZbsTemplatesCommand;
 use FieldVn\Zalo\Laravel\Events\ZaloFollowerAdded;
 use FieldVn\Zalo\Laravel\Events\ZaloFollowerRemoved;
 use FieldVn\Zalo\Laravel\Events\ZaloMessageReceived;
-use FieldVn\Zalo\Laravel\Events\ZaloWebhookReceived;
 use FieldVn\Zalo\Laravel\Http\Middleware\Authorize;
 use FieldVn\Zalo\Laravel\Listeners\UpdateContactOnWebhookEvent;
 use FieldVn\Zalo\Laravel\Managers\ZaloManager;
@@ -116,7 +115,6 @@ class ZaloServiceProvider extends ServiceProvider
         $this->registerRoutes();
         $this->registerScheduler();
 
-        Event::listen(ZaloWebhookReceived::class, [UpdateContactOnWebhookEvent::class, 'handleWebhookReceived']);
         Event::listen(ZaloFollowerAdded::class, [UpdateContactOnWebhookEvent::class, 'handleFollow']);
         Event::listen(ZaloFollowerRemoved::class, [UpdateContactOnWebhookEvent::class, 'handleUnfollow']);
         Event::listen(ZaloMessageReceived::class, [UpdateContactOnWebhookEvent::class, 'handleMessage']);

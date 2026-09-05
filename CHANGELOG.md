@@ -19,8 +19,9 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
   TTL `zalo.notifier.token_status_cache_ttl` (mặc định 90s). Invalidate khi
   `EloquentTokenStore::put()` / `forget()`.
 - **Bảng `zl_contacts`** — theo dõi `is_following` và `last_interaction_at` từ
-  webhook follow / unfollow / message / user_seen_message. Unique
-  `(oa_id, zalo_user_id)`.
+  webhook follow / unfollow / `user_send_*`. Unique `(oa_id, zalo_user_id)`.
+  Biên nhận `user_received_message` / `user_seen_message` **không** gia hạn
+  `last_interaction_at` (không phải tương tác user → không mở cửa sổ CS).
 - **`OaNotifier`** — chọn kênh rồi gửi: ưu tiên OA CS theo `zalo_user_id`,
   fallback ZBS theo SĐT. Token stale / contact unfollow / ngoài cửa sổ CS →
   ZBS khi đủ điều kiện. CS fail **không** fallback ZBS.
@@ -36,6 +37,13 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
   (1440), `cs_window_days` (7), `contact_prune_days` (180).
 
 ### Fixed
+
+- **`getoa` và tag API gọi `/v3.0/...` trong khi Zalo chưa bao giờ ship các
+  endpoint đó.** `OAChannel::info()` và `TagResource` chuyển sang `/v2.0/oa/...`
+  — nút "Kiểm tra" trên UI không còn nhận response trống/invalid.
+- **`user_received_message` / `user_seen_message`:** `WebhookEvent` lấy OA từ
+  `oa_id` / `sender.id`, user từ `recipient.id` (ưu tiên hơn `user_id_by_app`).
+  Trước đây dễ resolve sai OA/user trên biên nhận giao tin.
 
 - **CI chưa từng chạy được test.** Mọi job matrix chết ở `composer update`,
   trước khi tới `composer test` — nghĩa là badge Tests báo đỏ từ commit đầu

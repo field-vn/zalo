@@ -12,7 +12,8 @@ use Illuminate\Support\Carbon;
 /**
  * Người dùng Zalo đã từng tương tác với một OA (follow / nhắn tin).
  *
- * Dùng cho OaNotifier: biết `is_following` và `last_interaction_at`.
+ * Dùng cho OaNotifier: biết `is_following` và `last_interaction_at`
+ * (chỉ từ follow / `user_send_*` — không từ biên nhận giao tin).
  * Package không lưu số điện thoại — chỉ `zalo_user_id`.
  *
  * @property int $id

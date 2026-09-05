@@ -157,7 +157,7 @@ it('bỏ qua khi OA null', function (): void {
     expect(ZaloContact::query()->count())->toBe(0);
 });
 
-it('user_received_message chỉ touch last_interaction_at, không đổi is_following', function (): void {
+it('user_received_message không gia hạn last_interaction_at (không phải tương tác user)', function (): void {
     $oa = makeContactOa(['slug' => 'cskh-recv', 'oa_id' => 'oa-recv']);
     $follow = WebhookEvent::fromPayload(followPayload([
         'oa_id' => 'oa-recv',
@@ -165,20 +165,12 @@ it('user_received_message chỉ touch last_interaction_at, không đổi is_foll
     ]));
     ZaloFollowerAdded::dispatch($follow, $oa, $follow->userId());
 
-    $unfollow = WebhookEvent::fromPayload(unfollowPayload([
-        'oa_id' => 'oa-recv',
-        'follower' => ['id' => 'user-recv-1'],
-    ]));
-    ZaloFollowerRemoved::dispatch($unfollow, $oa, $unfollow->userId());
-
     $before = ZaloContact::query()
         ->where('oa_id', $oa->getKey())
         ->where('zalo_user_id', 'user-recv-1')
         ->firstOrFail();
 
-    expect($before->is_following)->toBeFalse();
-
-    $oldInteraction = $before->last_interaction_at->copy()->subMinute();
+    $oldInteraction = $before->last_interaction_at->copy()->subDays(8);
     $before->forceFill(['last_interaction_at' => $oldInteraction])->save();
 
     // Real Zalo shape: OA→user delivery receipt (sender=OA, recipient=user).
@@ -203,8 +195,7 @@ it('user_received_message chỉ touch last_interaction_at, không đổi is_foll
         ->where('zalo_user_id', 'user-recv-1')
         ->firstOrFail();
 
-    expect($after->is_following)->toBeFalse()
-        ->and($after->last_interaction_at->greaterThan($oldInteraction))->toBeTrue()
+    expect($after->last_interaction_at->equalTo($oldInteraction))->toBeTrue()
         ->and(
             ZaloContact::query()
                 ->where('oa_id', $oa->getKey())
@@ -213,7 +204,7 @@ it('user_received_message chỉ touch last_interaction_at, không đổi is_foll
         )->toBeFalse();
 });
 
-it('user_received_message khớp recipient.id dù user_id_by_app khác', function (): void {
+it('user_received_message không tạo row theo user_id_by_app', function (): void {
     $oa = makeContactOa(['slug' => 'cskh-recv-oa-id', 'oa_id' => 'oa-recv-oa']);
     $follow = WebhookEvent::fromPayload(followPayload([
         'oa_id' => 'oa-recv-oa',
@@ -249,7 +240,7 @@ it('user_received_message khớp recipient.id dù user_id_by_app khác', functio
         ->where('zalo_user_id', 'user-200')
         ->firstOrFail();
 
-    expect($after->last_interaction_at->greaterThan($oldInteraction))->toBeTrue()
+    expect($after->last_interaction_at->equalTo($oldInteraction))->toBeTrue()
         ->and(
             ZaloContact::query()
                 ->where('oa_id', $oa->getKey())
