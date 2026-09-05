@@ -24,6 +24,8 @@ final class Table
 
     public const WEBHOOK_LOGS = 'webhook_logs';
 
+    public const CONTACTS = 'contacts';
+
     /** Mọi bảng package quản lý, dùng cho doctor và uninstall. */
     public const ALL = [
         self::OAS,
@@ -32,6 +34,7 @@ final class Table
         self::BOT_CHATS,
         self::AUDIT_LOGS,
         self::WEBHOOK_LOGS,
+        self::CONTACTS,
     ];
 
     public static function prefix(): string
