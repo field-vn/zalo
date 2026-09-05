@@ -213,6 +213,54 @@ it('user_received_message chỉ touch last_interaction_at, không đổi is_foll
         )->toBeFalse();
 });
 
+it('user_received_message khớp recipient.id dù user_id_by_app khác', function (): void {
+    $oa = makeContactOa(['slug' => 'cskh-recv-oa-id', 'oa_id' => 'oa-recv-oa']);
+    $follow = WebhookEvent::fromPayload(followPayload([
+        'oa_id' => 'oa-recv-oa',
+        'follower' => ['id' => 'user-200'],
+    ]));
+    ZaloFollowerAdded::dispatch($follow, $oa, $follow->userId());
+
+    $before = ZaloContact::query()
+        ->where('oa_id', $oa->getKey())
+        ->where('zalo_user_id', 'user-200')
+        ->firstOrFail();
+
+    $oldInteraction = $before->last_interaction_at->copy()->subMinute();
+    $before->forceFill(['last_interaction_at' => $oldInteraction])->save();
+
+    $received = WebhookEvent::fromPayload([
+        'app_id' => 'app-1',
+        'event_name' => 'user_received_message',
+        'timestamp' => (string) (time() * 1000),
+        'oa_id' => 'oa-recv-oa',
+        'sender' => ['id' => 'oa-recv-oa'],
+        'recipient' => ['id' => 'user-200'],
+        'user_id_by_app' => 'app-scoped-999',
+        'message' => ['msg_id' => 'msg-r-oa'],
+    ]);
+
+    expect($received->userId())->toBe('user-200');
+
+    app(WebhookDispatcher::class)->dispatch($received);
+
+    $after = ZaloContact::query()
+        ->where('oa_id', $oa->getKey())
+        ->where('zalo_user_id', 'user-200')
+        ->firstOrFail();
+
+    expect($after->last_interaction_at->greaterThan($oldInteraction))->toBeTrue()
+        ->and(
+            ZaloContact::query()
+                ->where('oa_id', $oa->getKey())
+                ->where('zalo_user_id', 'app-scoped-999')
+                ->exists()
+        )->toBeFalse()
+        ->and(
+            ZaloContact::query()->where('oa_id', $oa->getKey())->count()
+        )->toBe(1);
+});
+
 it('oa_send_* không tạo contact qua handleMessage', function (): void {
     $oa = makeContactOa(['slug' => 'cskh-oa-send', 'oa_id' => 'oa-send']);
     $event = WebhookEvent::fromPayload([

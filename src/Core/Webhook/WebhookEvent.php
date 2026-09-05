@@ -103,13 +103,15 @@ final class WebhookEvent
     public function userId(): ?string
     {
         // Biên nhận giao tin: user là bên nhận (không phải sender=OA).
+        // Prefer recipient.id (OA user id, same space as follower.id / sender.id)
+        // over user_id_by_app (app-scoped id that does not match zl_contacts.zalo_user_id).
         if (self::isDeliveryReceipt($this->name)) {
-            if (isset($this->payload['user_id_by_app'])) {
-                return (string) $this->payload['user_id_by_app'];
-            }
-
             if (isset($this->payload['recipient']['id'])) {
                 return (string) $this->payload['recipient']['id'];
+            }
+
+            if (isset($this->payload['user_id_by_app'])) {
+                return (string) $this->payload['user_id_by_app'];
             }
 
             return null;

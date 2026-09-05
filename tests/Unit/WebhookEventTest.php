@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use FieldVn\Zalo\Core\Webhook\WebhookEvent;
 
-it('user_received_message: OA từ oa_id, user từ user_id_by_app', function (): void {
+it('user_received_message: OA từ oa_id, user từ recipient.id (không lấy user_id_by_app)', function (): void {
     $event = WebhookEvent::fromPayload([
         'app_id' => 'app-1',
         'event_name' => 'user_received_message',
@@ -17,7 +17,7 @@ it('user_received_message: OA từ oa_id, user từ user_id_by_app', function ()
     ]);
 
     expect($event->oaId)->toBe('oa-100')
-        ->and($event->userId())->toBe('user-by-app-200');
+        ->and($event->userId())->toBe('user-200');
 });
 
 it('user_received_message không có oa_id: OA = sender.id, user = recipient.id', function (): void {
