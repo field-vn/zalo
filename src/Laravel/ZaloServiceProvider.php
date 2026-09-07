@@ -8,6 +8,7 @@ use FieldVn\Zalo\Contracts\BotRepository;
 use FieldVn\Zalo\Contracts\Factory;
 use FieldVn\Zalo\Contracts\OaRepository;
 use FieldVn\Zalo\Contracts\Transport;
+use FieldVn\Zalo\Core\Exceptions\ZaloException;
 use FieldVn\Zalo\Core\Http\GuzzleTransport;
 use FieldVn\Zalo\Laravel\Console\AuthorizeCommand;
 use FieldVn\Zalo\Laravel\Console\BotAddCommand;
@@ -38,6 +39,8 @@ use FieldVn\Zalo\Laravel\Models\ZaloOa;
 use FieldVn\Zalo\Laravel\Repositories\EloquentBotRepository;
 use FieldVn\Zalo\Laravel\Repositories\EloquentOaRepository;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -113,6 +116,7 @@ class ZaloServiceProvider extends ServiceProvider
         });
 
         $this->registerRoutes();
+        $this->registerExceptionRenderer();
         $this->registerScheduler();
 
         Event::listen(ZaloFollowerAdded::class, [UpdateContactOnWebhookEvent::class, 'handleFollow']);
@@ -143,6 +147,19 @@ class ZaloServiceProvider extends ServiceProvider
                 PruneContactsCommand::class,
             ]);
         }
+    }
+
+    protected function registerExceptionRenderer(): void
+    {
+        $this->callAfterResolving(ExceptionHandler::class, function (ExceptionHandler $handler): void {
+            $handler->renderable(function (ZaloException $e, Request $request) {
+                if (! $request->expectsJson()) {
+                    return null;
+                }
+
+                return response()->json($e->toArray(), $e->httpStatus());
+            });
+        });
     }
 
     protected function registerRoutes(): void

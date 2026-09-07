@@ -154,6 +154,10 @@ it('user id + token tươi + CS throw → failed oa_cs, ZBS 0 lần', function (
     expect($result->ok)->toBeFalse()
         ->and($result->channel)->toBe(NotifyResult::CHANNEL_OA_CS)
         ->and($result->reason)->toContain('User has not followed')
+        ->and($result->errorCode)->toBe(-230)
+        ->and($result->error)->toBeArray()
+        ->and($result->error['code'])->toBe(-230)
+        ->and($result->error['category'])->toBe('recipient')
         ->and(requestsMatching($fake, '/v3.0/oa/message/cs'))->toHaveCount(1)
         ->and(requestsMatching($fake, '/message/template'))->toHaveCount(0);
 });

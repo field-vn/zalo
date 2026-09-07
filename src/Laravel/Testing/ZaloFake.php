@@ -52,10 +52,13 @@ class ZaloFake implements Factory
         return $this->recorder;
     }
 
-    /** @param array<string, mixed> $data */
-    public function push(array $data, int $status = 200): self
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<string, string>  $headers
+     */
+    public function push(array $data, int $status = 200, array $headers = []): self
     {
-        $this->recorder->push($data, $status);
+        $this->recorder->push($data, $status, $headers);
 
         return $this;
     }

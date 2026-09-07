@@ -33,7 +33,7 @@ class ZbsStatusCommand extends Command
             $oa = $zalo->oa($this->stringOption('oa') ?: null);
             $response = $oa->zbs()->status($this->stringArgument('message'));
         } catch (ApiException $e) {
-            $this->components->error("Zalo từ chối — mã {$e->errorCode}: {$e->getMessage()}");
+            $this->components->error($e->explain());
 
             return self::FAILURE;
         } catch (ZaloException $e) {

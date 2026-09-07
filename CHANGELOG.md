@@ -10,6 +10,22 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-09-07
+
+### Added
+
+- **Catalog mã lỗi Open API** — `ErrorCatalog` / `ErrorInfo` map mã OA (tài liệu
+  Zalo), ZBS và Bot sang `description`, `hint`, `category`. `ApiException` và
+  mọi `ZaloException` có `toArray()`, `explain()`, `httpStatus()`. Request JSON
+  (`expectsJson`) tự nhận payload đó. `isTokenError()` chỉ `-216`/`-220`/`-124`/`401`.
+  `NotifyResult` thất bại giữ `errorCode` và `error`.
+- **Check khả dụng OA + ZBS** — `Zalo::oa()->capabilities()->check(...)` trả
+  `available` + `remain`/`limit`/`meta` (quota CS, gói, rate limit, ZBS daily/
+  monthly, template). Không throw khi thiếu tính năng. `zbs_send` không POST tin.
+  `CapabilityRegistry::extend()`. Catalog ZBS bổ sung theo
+  [bảng mã lỗi](https://developers.zalo.me/docs/zbs-template-message/bang-ma-loi).
+  Response giữ `X-RateLimit-Limit` / `X-RateLimit-Remain`.
+
 ## [0.3.0] — 2026-09-05
 
 ### Added
@@ -211,7 +227,8 @@ Bản phát hành đầu tiên.
   01/01/2026, thời điểm Zalo hợp nhất chúng cùng ZNS thành ZBS Template
   Message. ZBS Template Message chưa được hỗ trợ.
 
-[Unreleased]: https://github.com/field-vn/zalo/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/field-vn/zalo/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/field-vn/zalo/releases/tag/v0.4.0
 [0.3.0]: https://github.com/field-vn/zalo/releases/tag/v0.3.0
 [0.2.2]: https://github.com/field-vn/zalo/releases/tag/v0.2.2
 [0.2.1]: https://github.com/field-vn/zalo/releases/tag/v0.2.1

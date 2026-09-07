@@ -26,6 +26,7 @@ kèm giao diện cấu hình không cần viết code.
 **Dùng trong code**
 
 - [Gửi tin nhắn](#gửi-tin-nhắn)
+- [Kiểm tra khả dụng OA / ZBS](#kiểm-tra-khả-dụng-oa--zbs)
 - [Nhận tin nhắn](#nhận-tin-nhắn)
 - [Nhiều OA](#nhiều-oa)
 - [Testing](#testing)
@@ -197,6 +198,41 @@ Zalo::oa('cskh')->messages()->text($userId, 'Đơn hàng đã được xác nh�
 Zalo::bot('support')->text($chatId, 'Xin chào');
 ```
 
+### Xử lý lỗi Open API
+
+Zalo trả **HTTP 200** kèm `error != 0` cho hầu hết lỗi nghiệp vụ. Package ném
+`ApiException` (bắt `ZaloException` để gồm cả mạng / token / cấu hình).
+
+```php
+use FieldVn\Zalo\Core\Exceptions\ApiException;
+use FieldVn\Zalo\Core\Exceptions\ZaloException;
+
+try {
+    Zalo::oa('cskh')->messages()->text($userId, 'Xin chào');
+} catch (ApiException $e) {
+    $e->errorCode;     // -230
+    $e->getMessage();  // nguyên văn Zalo
+    $e->info()->hint;  // việc cần làm (tiếng Việt)
+    $e->toArray();     // payload JSON ổn định cho client
+} catch (ZaloException $e) {
+    return response()->json($e->toArray(), $e->httpStatus());
+}
+```
+
+`toArray()` gồm `ok`, `source`, `code`, `message`, `description`, `hint`,
+`category`, `docs`, `http_status`. App Laravel gọi API JSON: nếu không bắt
+exception, package tự trả JSON đó khi request `expectsJson()`.
+
+`category`: `token`, `rate_limit`, `quota`, `validation`, `recipient`,
+`permission`, `oa_state`, `zbs`, `bot`, `transport`, `config`, `unknown`.
+
+Mã OA đầy đủ: [Mã lỗi Official Account API](https://developers.zalo.me/docs/official-account/phu-luc/ma-loi).
+`$e->isTokenError()` chỉ `-216`, `-220`, `-124`, `401` — không gồm `-32` (rate
+limit) hay `-217` (user chặn tin mời).
+
+**Notifier** khi fail giữ `errorCode` và `error` (cùng shape `toArray()`),
+không chỉ chuỗi `reason`.
+
 **Notifier — chọn CS hoặc ZBS giúp bạn.** Có `zalo_user_id` và token còn hạn thì
 gửi tin Tư vấn; token sắp hết / user unfollow / ngoài cửa sổ CS thì fallback
 ZBS theo số điện thoại (cần `templateId` + `templateData`). CS lỗi thì dừng —
@@ -307,6 +343,20 @@ $zbs->send('0987654321', $id, [
 $zbs->status($msgId);              // đã giao tới máy chưa
 ```
 
+Check trước khi `send()` — không POST tin thật, không trừ tiền:
+
+```php
+use FieldVn\Zalo\Core\Channels\OA\Capabilities\OaCapability;
+
+$report = Zalo::oa('cskh')->capabilities()->check(
+    OaCapability::zbsSend(templateId: $id),
+);
+
+if (! $report->available(OaCapability::ZbsSend)) {
+    // hết quota ngày, mẫu chưa ENABLE, hoặc chưa liên kết ZBS
+}
+```
+
 Số điện thoại nhận mọi cách viết — `0987…`, `+8498…`, `8498…`, có dấu cách hay
 gạch ngang — và được quy về dạng Zalo yêu cầu trước khi gửi.
 
@@ -329,6 +379,52 @@ Zalo::availableOas();        // Collection<ZaloOa>, dùng cho dropdown
 
 Zalo::oas(fn ($oa) => in_array('cskh', $oa->tags ?? []))
     ->each(fn ($channel) => $channel->messages()->text($userId, $noiDung));
+```
+
+### Kiểm tra khả dụng OA / ZBS
+
+Zalo không có API “danh sách quyền lợi”. `capabilities()->check()` gọi API đọc
+(getoa, quota OA v3, quota/template ZBS) rồi trả **report** — không throw khi
+gói thiếu Open API, template chưa duyệt, hay hết hạn mức. Chỉ throw khi token
+hoặc mạng hỏng.
+
+Mỗi mục có `available` + số liệu docs (`remain` / `limit` / `meta`). Hết hạn
+mức vẫn trả `remain: 0`.
+
+```php
+use FieldVn\Zalo\Core\Channels\OA\Capabilities\CapabilityRegistry;
+use FieldVn\Zalo\Core\Channels\OA\Capabilities\CapabilityResult;
+use FieldVn\Zalo\Core\Channels\OA\Capabilities\OaCapability;
+
+$report = Zalo::oa('cskh')->capabilities()->check(
+    OaCapability::CsOutside48h,
+    OaCapability::OpenApi,
+    OaCapability::Zbs,
+    OaCapability::ZbsQuota,
+    OaCapability::ZbsTemplates,
+    OaCapability::zbsTemplate(id: '433555'),
+    OaCapability::zbsSend(templateId: '433555'),
+);
+
+$report->available(OaCapability::Zbs);
+$report->get(OaCapability::ZbsQuota)->remain;
+$report->toArray();
+
+Zalo::oa('cskh')->capabilities()->check('open_api', 'zbs', 'zbs_quota');
+Zalo::oa('cskh')->capabilities()->check(); // built-in; template/send cần id thì skip + hint
+```
+
+`zbs_send` gộp: ZBS gọi được + mẫu ENABLE + `remainingQuota > 0`. Không POST
+`/message/template`.
+
+```php
+CapabilityRegistry::extend('my_key', function ($snapshot, $options) {
+    return new CapabilityResult(
+        key: 'my_key',
+        available: true,
+        value: $snapshot->packageName(),
+    );
+});
 ```
 
 ## Nhận tin nhắn
