@@ -10,7 +10,7 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
-## [0.4.0] — 2026-09-07
+## [0.2.6] — 2026-09-07
 
 ### Added
 
@@ -227,9 +227,9 @@ Bản phát hành đầu tiên.
   01/01/2026, thời điểm Zalo hợp nhất chúng cùng ZNS thành ZBS Template
   Message. ZBS Template Message chưa được hỗ trợ.
 
-[Unreleased]: https://github.com/field-vn/zalo/compare/v0.4.0...HEAD
-[0.4.0]: https://github.com/field-vn/zalo/releases/tag/v0.4.0
+[Unreleased]: https://github.com/field-vn/zalo/compare/v0.2.6...HEAD
 [0.3.0]: https://github.com/field-vn/zalo/releases/tag/v0.3.0
+[0.2.6]: https://github.com/field-vn/zalo/releases/tag/v0.2.6
 [0.2.2]: https://github.com/field-vn/zalo/releases/tag/v0.2.2
 [0.2.1]: https://github.com/field-vn/zalo/releases/tag/v0.2.1
 [0.2.0]: https://github.com/field-vn/zalo/releases/tag/v0.2.0
