@@ -331,17 +331,43 @@ Bot nhận thẳng URL ảnh, không cần upload trước như OA.
 ```php
 $zbs = Zalo::oa('cskh')->zbs();
 
-$zbs->templates();                 // mọi mẫu và trạng thái của chúng
-$zbs->template($id);               // tham số bắt buộc của một mẫu
-$zbs->quota();                     // hạn mức còn lại hôm nay
+$zbs->templates();                          // mọi mẫu và trạng thái
+$zbs->templates(filterPreset: 1);          // chỉ mẫu do App này tạo
+$zbs->info($id);                            // GET /template/info/v2
+$zbs->template($id);                        // info(), null khi id không tồn tại
+$zbs->quota();                              // hạn mức còn lại hôm nay
+
+$mediaId = $zbs->uploadImage('/path/logo.png'); // media_id, JPG/PNG, ≤ 500 KB
+
+$zbs->create([
+    'template_name' => 'Xác nhận đơn hàng ABC',
+    'template_type' => 1,                   // 1 tuỳ chỉnh … 5 đánh giá
+    'tag' => 1,                             // 1 Transaction, 2 CSKH, 3 Promotion
+    'layout' => [/* header / body / footer đúng docs Zalo */],
+    'params' => [['name' => 'order_code', 'type' => '11', 'sample_value' => 'DH-1']],
+    'tracking_id' => 'tpl-dh-001',
+]);
+
+$zbs->edit($id, [/* cùng shape; chỉ sửa được mẫu REJECT */]);
 
 $zbs->send('0987654321', $id, [
     'customer_name' => 'Nguyễn Văn A',
     'time'          => '18:00 20-08-2026',
 ]);
 
-$zbs->status($msgId);              // đã giao tới máy chưa
+$zbs->status($msgId);
+$zbs->waitForDelivery($msgId, timeoutSeconds: 60);          // poll giao tin
+$zbs->waitUntilStatus($id, statuses: ['ENABLE', 'REJECT']); // poll duyệt mẫu
 ```
+
+Zalo **không có Open API xoá/disable** template. Xoá trên ZBS Account. Trạng thái
+`DELETE` / `DISABLE` chỉ đọc được qua list, `info()`, hoặc webhook
+`change_template_status`.
+
+API tạo/sửa đang được Zalo đánh giá lại — ưu tiên UI ZBS Account nếu không cần
+tạo hàng loạt. `$layout` là JSON docs, package không dựng DSL component.
+
+Duyệt mẫu: lắng nghe webhook (khuyến nghị) hoặc `waitUntilStatus()` / `zalo:zbs:wait`.
 
 Check trước khi `send()` — không POST tin thật, không trừ tiền:
 
@@ -481,6 +507,8 @@ class TraLoiBot
 | `ZaloMessageReceived` | Người dùng gửi tin nhắn tới OA |
 | `ZaloFollowerAdded` | Người dùng quan tâm OA |
 | `ZaloFollowerRemoved` | Người dùng bỏ quan tâm |
+| `ZaloTemplateStatusChanged` | Template ZBS đổi trạng thái (duyệt / từ chối / …) |
+| `ZaloOaDailyQuotaChanged` | Hạn mức gửi tin ZBS theo ngày thay đổi |
 | `ZaloOaConnected` | OA vừa được cấp quyền |
 | `ZaloOaDisconnected` | OA mất kết nối, cần cấp quyền lại |
 | `ZaloBotUpdateReceived` | Mọi update của Bot, kèm payload gốc |
@@ -685,8 +713,10 @@ Token lưu trong DB được mã hoá bằng `APP_KEY`. Đổi `APP_KEY` sẽ l�
 | `zalo:bot:chats {bot?}` | Liệt kê `chat_id` đã ghi nhận |
 | `zalo:bot:send {bot} {chat} {text?}` | Gửi tin · `--photo=` · `--sticker=` |
 | `zalo:zbs:templates {oa?}` | Liệt kê mẫu ZBS · `--id=` · `--enabled` |
+| `zalo:zbs:create {file}` | Tạo mẫu từ file JSON |
 | `zalo:zbs:send {sđt} {mẫu} {json}` | Gửi tin ZBS · `--production` |
-| `zalo:zbs:status {msg_id}` | Tra trạng thái giao tin |
+| `zalo:zbs:status {msg_id}` | Tra trạng thái giao tin · `--watch` · `--timeout=` · `--interval=` |
+| `zalo:zbs:wait {id}` | Poll duyệt template · `--until=` · `--timeout=` |
 Gặp vấn đề thì chạy `zalo:doctor` trước — lệnh này kiểm credential, redirect URI, bảng, mã hoá, giao diện, scheduler, từng OA và từng Bot.
 
 ## Phát triển package

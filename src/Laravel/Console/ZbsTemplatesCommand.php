@@ -9,6 +9,7 @@ use FieldVn\Zalo\Core\Channels\OA\Resources\ZbsResource;
 use FieldVn\Zalo\Core\Exceptions\ApiException;
 use FieldVn\Zalo\Core\Exceptions\ZaloException;
 use FieldVn\Zalo\Laravel\Console\Concerns\InteractsWithInput;
+use FieldVn\Zalo\Laravel\Support\ZbsPreviewUrl;
 use Illuminate\Console\Command;
 
 /**
@@ -115,6 +116,16 @@ class ZbsTemplatesCommand extends Command
         $this->components->twoColumnDetail('<fg=gray>Tên</>', (string) ($data['templateName'] ?? '—'));
         $this->components->twoColumnDetail('<fg=gray>Trạng thái</>', (string) ($data['status'] ?? '—'));
         $this->components->twoColumnDetail('<fg=gray>Quota hôm nay</>', (string) ($data['templateRemainingQuota'] ?? '—'));
+
+        if (isset($data['reason']) && $data['reason'] !== '') {
+            $this->components->twoColumnDetail('<fg=gray>Lý do</>', (string) $data['reason']);
+        }
+
+        $preview = ZbsPreviewUrl::from($data['previewUrl'] ?? $data['preview_url'] ?? null);
+
+        if ($preview !== null) {
+            $this->components->twoColumnDetail('<fg=gray>Preview</>', $preview);
+        }
 
         /** @var list<array<string, mixed>> $params */
         $params = (array) ($data['listParams'] ?? []);

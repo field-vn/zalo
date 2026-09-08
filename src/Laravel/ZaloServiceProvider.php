@@ -25,9 +25,11 @@ use FieldVn\Zalo\Laravel\Console\OaTestCommand;
 use FieldVn\Zalo\Laravel\Console\PruneContactsCommand;
 use FieldVn\Zalo\Laravel\Console\RefreshTokensCommand;
 use FieldVn\Zalo\Laravel\Console\StatusCommand;
+use FieldVn\Zalo\Laravel\Console\ZbsCreateCommand;
 use FieldVn\Zalo\Laravel\Console\ZbsSendCommand;
 use FieldVn\Zalo\Laravel\Console\ZbsStatusCommand;
 use FieldVn\Zalo\Laravel\Console\ZbsTemplatesCommand;
+use FieldVn\Zalo\Laravel\Console\ZbsWaitCommand;
 use FieldVn\Zalo\Laravel\Events\ZaloFollowerAdded;
 use FieldVn\Zalo\Laravel\Events\ZaloFollowerRemoved;
 use FieldVn\Zalo\Laravel\Events\ZaloMessageReceived;
@@ -144,6 +146,8 @@ class ZaloServiceProvider extends ServiceProvider
                 ZbsTemplatesCommand::class,
                 ZbsSendCommand::class,
                 ZbsStatusCommand::class,
+                ZbsCreateCommand::class,
+                ZbsWaitCommand::class,
                 PruneContactsCommand::class,
             ]);
         }

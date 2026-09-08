@@ -10,6 +10,7 @@ use FieldVn\Zalo\Core\Exceptions\ApiException;
 use FieldVn\Zalo\Core\Exceptions\ConfigurationException;
 use FieldVn\Zalo\Core\Exceptions\ZaloException;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
+use FieldVn\Zalo\Laravel\Support\ZbsPreviewUrl;
 use FieldVn\Zalo\Support\PhoneNumber;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -28,6 +29,7 @@ class ZbsController
         $templates = [];
         $quota = null;
         $error = null;
+        $zbs = null;
 
         try {
             $zbs = $zalo->oa($oa->slug)->zbs();
@@ -46,7 +48,20 @@ class ZbsController
         $selected = null;
         $wanted = trim((string) $request->query('template', ''));
 
-        if ($wanted !== '') {
+        if ($wanted !== '' && $zbs !== null) {
+            try {
+                $detail = $zbs->info($wanted)->payload();
+
+                if (is_array($detail) && $detail !== []) {
+                    /** @var array<string, mixed> $detail */
+                    $selected = $detail;
+                }
+            } catch (ApiException) {
+                // Giữ bản từ danh sách nếu info/v2 lỗi — trang vẫn gửi được.
+            }
+        }
+
+        if ($selected === null && $wanted !== '') {
             foreach ($templates as $t) {
                 if ((string) ($t['templateId'] ?? $t['template_id'] ?? '') === $wanted) {
                     $selected = $t;
@@ -65,6 +80,9 @@ class ZbsController
             // hiện đủ tham số. Khi đó không dựng được form nên phải cho nhập
             // JSON tay, nếu không người dùng kẹt cứng cho tới lúc duyệt xong.
             'params' => $selected === null ? [] : (array) ($selected['listParams'] ?? []),
+            'previewUrl' => $selected === null
+                ? null
+                : ZbsPreviewUrl::from($selected['previewUrl'] ?? $selected['preview_url'] ?? null),
             'mode' => (string) config('zalo.zbs.mode', ZbsResource::MODE_DEVELOPMENT),
         ]);
     }

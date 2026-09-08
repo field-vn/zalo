@@ -10,6 +10,18 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+### Added
+
+- **ZBS quản lý template** — `create()`, `edit()`, `info()` (`GET /template/info/v2`),
+  `uploadImage()` (`POST /upload/image`, JPG/PNG ≤ 500 KB). `template($id)` gọi
+  info, trả `null` khi `-109`. `templates()` nhận `filterPreset`.
+- **Poll** — `waitForDelivery()` / `waitUntilStatus()`; `zalo:zbs:status --watch`;
+  `zalo:zbs:wait {id}`. `zalo:zbs:create {json-file}`.
+- **Webhook ZBS** — `ZaloTemplateStatusChanged` (`change_template_status`),
+  `ZaloOaDailyQuotaChanged` (`change_oa_daily_quota`, nhận cả `oaId`).
+
+Zalo không có Open API xoá/disable template — làm trên ZBS Account.
+
 ## [0.2.6] — 2026-09-07
 
 ### Added

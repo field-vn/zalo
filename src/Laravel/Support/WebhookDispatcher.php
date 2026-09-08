@@ -8,6 +8,8 @@ use FieldVn\Zalo\Core\Webhook\WebhookEvent;
 use FieldVn\Zalo\Laravel\Events\ZaloFollowerAdded;
 use FieldVn\Zalo\Laravel\Events\ZaloFollowerRemoved;
 use FieldVn\Zalo\Laravel\Events\ZaloMessageReceived;
+use FieldVn\Zalo\Laravel\Events\ZaloOaDailyQuotaChanged;
+use FieldVn\Zalo\Laravel\Events\ZaloTemplateStatusChanged;
 use FieldVn\Zalo\Laravel\Events\ZaloWebhookReceived;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
 use FieldVn\Zalo\Laravel\Models\ZaloWebhookLog;
@@ -36,6 +38,28 @@ final class WebhookDispatcher
                 ZaloFollowerAdded::dispatch($event, $oa, $event->userId());
             } elseif ($event->isUnfollow()) {
                 ZaloFollowerRemoved::dispatch($event, $oa, $event->userId());
+            } elseif ($event->isTemplateStatusChange()) {
+                $status = (array) ($event->payload['status'] ?? []);
+                ZaloTemplateStatusChanged::dispatch(
+                    $event,
+                    $oa,
+                    (string) ($event->payload['template_id'] ?? $event->payload['templateId'] ?? ''),
+                    isset($status['prev_status']) ? (string) $status['prev_status'] : null,
+                    isset($status['new_status']) ? (string) $status['new_status'] : null,
+                    isset($event->payload['reason']) ? (string) $event->payload['reason'] : null,
+                );
+            } elseif ($event->isOaDailyQuotaChange()) {
+                $quota = (array) ($event->payload['quota'] ?? []);
+                ZaloOaDailyQuotaChanged::dispatch(
+                    $event,
+                    $oa,
+                    isset($quota['prev_value']) && is_numeric($quota['prev_value'])
+                        ? (int) $quota['prev_value']
+                        : null,
+                    isset($quota['new_value']) && is_numeric($quota['new_value'])
+                        ? (int) $quota['new_value']
+                        : null,
+                );
             }
 
             $log?->forceFill(['status' => 'processed', 'processed_at' => now()])->save();
