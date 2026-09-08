@@ -48,6 +48,10 @@ final class WebhookEvent
                 return (string) $payload['oa_id'];
             }
 
+            if (isset($payload['oaId'])) {
+                return (string) $payload['oaId'];
+            }
+
             if (isset($payload['sender']['id'])) {
                 return (string) $payload['sender']['id'];
             }
@@ -57,6 +61,10 @@ final class WebhookEvent
 
         if (isset($payload['oa_id'])) {
             return (string) $payload['oa_id'];
+        }
+
+        if (isset($payload['oaId'])) {
+            return (string) $payload['oaId'];
         }
 
         // Tin nhắn do OA gửi (echo): OA là bên gửi — trước recipient (user).
@@ -97,6 +105,16 @@ final class WebhookEvent
     public function isUnfollow(): bool
     {
         return $this->name === 'unfollow';
+    }
+
+    public function isTemplateStatusChange(): bool
+    {
+        return $this->name === 'change_template_status';
+    }
+
+    public function isOaDailyQuotaChange(): bool
+    {
+        return $this->name === 'change_oa_daily_quota';
     }
 
     /** Id người dùng Zalo liên quan tới sự kiện. */

@@ -8,6 +8,7 @@ use FieldVn\Zalo\Contracts\BotRepository;
 use FieldVn\Zalo\Contracts\Factory;
 use FieldVn\Zalo\Contracts\OaRepository;
 use FieldVn\Zalo\Contracts\Transport;
+use FieldVn\Zalo\Core\Exceptions\ZaloException;
 use FieldVn\Zalo\Core\Http\GuzzleTransport;
 use FieldVn\Zalo\Laravel\Console\AuthorizeCommand;
 use FieldVn\Zalo\Laravel\Console\BotAddCommand;
@@ -24,9 +25,11 @@ use FieldVn\Zalo\Laravel\Console\OaTestCommand;
 use FieldVn\Zalo\Laravel\Console\PruneContactsCommand;
 use FieldVn\Zalo\Laravel\Console\RefreshTokensCommand;
 use FieldVn\Zalo\Laravel\Console\StatusCommand;
+use FieldVn\Zalo\Laravel\Console\ZbsCreateCommand;
 use FieldVn\Zalo\Laravel\Console\ZbsSendCommand;
 use FieldVn\Zalo\Laravel\Console\ZbsStatusCommand;
 use FieldVn\Zalo\Laravel\Console\ZbsTemplatesCommand;
+use FieldVn\Zalo\Laravel\Console\ZbsWaitCommand;
 use FieldVn\Zalo\Laravel\Events\ZaloFollowerAdded;
 use FieldVn\Zalo\Laravel\Events\ZaloFollowerRemoved;
 use FieldVn\Zalo\Laravel\Events\ZaloMessageReceived;
@@ -38,6 +41,8 @@ use FieldVn\Zalo\Laravel\Models\ZaloOa;
 use FieldVn\Zalo\Laravel\Repositories\EloquentBotRepository;
 use FieldVn\Zalo\Laravel\Repositories\EloquentOaRepository;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -113,6 +118,7 @@ class ZaloServiceProvider extends ServiceProvider
         });
 
         $this->registerRoutes();
+        $this->registerExceptionRenderer();
         $this->registerScheduler();
 
         Event::listen(ZaloFollowerAdded::class, [UpdateContactOnWebhookEvent::class, 'handleFollow']);
@@ -140,9 +146,24 @@ class ZaloServiceProvider extends ServiceProvider
                 ZbsTemplatesCommand::class,
                 ZbsSendCommand::class,
                 ZbsStatusCommand::class,
+                ZbsCreateCommand::class,
+                ZbsWaitCommand::class,
                 PruneContactsCommand::class,
             ]);
         }
+    }
+
+    protected function registerExceptionRenderer(): void
+    {
+        $this->callAfterResolving(ExceptionHandler::class, function (ExceptionHandler $handler): void {
+            $handler->renderable(function (ZaloException $e, Request $request) {
+                if (! $request->expectsJson()) {
+                    return null;
+                }
+
+                return response()->json($e->toArray(), $e->httpStatus());
+            });
+        });
     }
 
     protected function registerRoutes(): void

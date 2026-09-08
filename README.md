@@ -26,6 +26,7 @@ kèm giao diện cấu hình không cần viết code.
 **Dùng trong code**
 
 - [Gửi tin nhắn](#gửi-tin-nhắn)
+- [Kiểm tra khả dụng OA / ZBS](#kiểm-tra-khả-dụng-oa--zbs)
 - [Nhận tin nhắn](#nhận-tin-nhắn)
 - [Nhiều OA](#nhiều-oa)
 - [Testing](#testing)
@@ -197,6 +198,41 @@ Zalo::oa('cskh')->messages()->text($userId, 'Đơn hàng đã được xác nh�
 Zalo::bot('support')->text($chatId, 'Xin chào');
 ```
 
+### Xử lý lỗi Open API
+
+Zalo trả **HTTP 200** kèm `error != 0` cho hầu hết lỗi nghiệp vụ. Package ném
+`ApiException` (bắt `ZaloException` để gồm cả mạng / token / cấu hình).
+
+```php
+use FieldVn\Zalo\Core\Exceptions\ApiException;
+use FieldVn\Zalo\Core\Exceptions\ZaloException;
+
+try {
+    Zalo::oa('cskh')->messages()->text($userId, 'Xin chào');
+} catch (ApiException $e) {
+    $e->errorCode;     // -230
+    $e->getMessage();  // nguyên văn Zalo
+    $e->info()->hint;  // việc cần làm (tiếng Việt)
+    $e->toArray();     // payload JSON ổn định cho client
+} catch (ZaloException $e) {
+    return response()->json($e->toArray(), $e->httpStatus());
+}
+```
+
+`toArray()` gồm `ok`, `source`, `code`, `message`, `description`, `hint`,
+`category`, `docs`, `http_status`. App Laravel gọi API JSON: nếu không bắt
+exception, package tự trả JSON đó khi request `expectsJson()`.
+
+`category`: `token`, `rate_limit`, `quota`, `validation`, `recipient`,
+`permission`, `oa_state`, `zbs`, `bot`, `transport`, `config`, `unknown`.
+
+Mã OA đầy đủ: [Mã lỗi Official Account API](https://developers.zalo.me/docs/official-account/phu-luc/ma-loi).
+`$e->isTokenError()` chỉ `-216`, `-220`, `-124`, `401` — không gồm `-32` (rate
+limit) hay `-217` (user chặn tin mời).
+
+**Notifier** khi fail giữ `errorCode` và `error` (cùng shape `toArray()`),
+không chỉ chuỗi `reason`.
+
 **Notifier — chọn CS hoặc ZBS giúp bạn.** Có `zalo_user_id` và token còn hạn thì
 gửi tin Tư vấn; token sắp hết / user unfollow / ngoài cửa sổ CS thì fallback
 ZBS theo số điện thoại (cần `templateId` + `templateData`). CS lỗi thì dừng —
@@ -295,16 +331,56 @@ Bot nhận thẳng URL ảnh, không cần upload trước như OA.
 ```php
 $zbs = Zalo::oa('cskh')->zbs();
 
-$zbs->templates();                 // mọi mẫu và trạng thái của chúng
-$zbs->template($id);               // tham số bắt buộc của một mẫu
-$zbs->quota();                     // hạn mức còn lại hôm nay
+$zbs->templates();                          // mọi mẫu và trạng thái
+$zbs->templates(filterPreset: 1);          // chỉ mẫu do App này tạo
+$zbs->info($id);                            // GET /template/info/v2
+$zbs->template($id);                        // info(), null khi id không tồn tại
+$zbs->quota();                              // hạn mức còn lại hôm nay
+
+$mediaId = $zbs->uploadImage('/path/logo.png'); // media_id, JPG/PNG, ≤ 500 KB
+
+$zbs->create([
+    'template_name' => 'Xác nhận đơn hàng ABC',
+    'template_type' => 1,                   // 1 tuỳ chỉnh … 5 đánh giá
+    'tag' => 1,                             // 1 Transaction, 2 CSKH, 3 Promotion
+    'layout' => [/* header / body / footer đúng docs Zalo */],
+    'params' => [['name' => 'order_code', 'type' => '11', 'sample_value' => 'DH-1']],
+    'tracking_id' => 'tpl-dh-001',
+]);
+
+$zbs->edit($id, [/* cùng shape; chỉ sửa được mẫu REJECT */]);
 
 $zbs->send('0987654321', $id, [
     'customer_name' => 'Nguyễn Văn A',
     'time'          => '18:00 20-08-2026',
 ]);
 
-$zbs->status($msgId);              // đã giao tới máy chưa
+$zbs->status($msgId);
+$zbs->waitForDelivery($msgId, timeoutSeconds: 60);          // poll giao tin
+$zbs->waitUntilStatus($id, statuses: ['ENABLE', 'REJECT']); // poll duyệt mẫu
+```
+
+Zalo **không có Open API xoá/disable** template. Xoá trên ZBS Account. Trạng thái
+`DELETE` / `DISABLE` chỉ đọc được qua list, `info()`, hoặc webhook
+`change_template_status`.
+
+API tạo/sửa đang được Zalo đánh giá lại — ưu tiên UI ZBS Account nếu không cần
+tạo hàng loạt. `$layout` là JSON docs, package không dựng DSL component.
+
+Duyệt mẫu: lắng nghe webhook (khuyến nghị) hoặc `waitUntilStatus()` / `zalo:zbs:wait`.
+
+Check trước khi `send()` — không POST tin thật, không trừ tiền:
+
+```php
+use FieldVn\Zalo\Core\Channels\OA\Capabilities\OaCapability;
+
+$report = Zalo::oa('cskh')->capabilities()->check(
+    OaCapability::zbsSend(templateId: $id),
+);
+
+if (! $report->available(OaCapability::ZbsSend)) {
+    // hết quota ngày, mẫu chưa ENABLE, hoặc chưa liên kết ZBS
+}
 ```
 
 Số điện thoại nhận mọi cách viết — `0987…`, `+8498…`, `8498…`, có dấu cách hay
@@ -329,6 +405,52 @@ Zalo::availableOas();        // Collection<ZaloOa>, dùng cho dropdown
 
 Zalo::oas(fn ($oa) => in_array('cskh', $oa->tags ?? []))
     ->each(fn ($channel) => $channel->messages()->text($userId, $noiDung));
+```
+
+### Kiểm tra khả dụng OA / ZBS
+
+Zalo không có API “danh sách quyền lợi”. `capabilities()->check()` gọi API đọc
+(getoa, quota OA v3, quota/template ZBS) rồi trả **report** — không throw khi
+gói thiếu Open API, template chưa duyệt, hay hết hạn mức. Chỉ throw khi token
+hoặc mạng hỏng.
+
+Mỗi mục có `available` + số liệu docs (`remain` / `limit` / `meta`). Hết hạn
+mức vẫn trả `remain: 0`.
+
+```php
+use FieldVn\Zalo\Core\Channels\OA\Capabilities\CapabilityRegistry;
+use FieldVn\Zalo\Core\Channels\OA\Capabilities\CapabilityResult;
+use FieldVn\Zalo\Core\Channels\OA\Capabilities\OaCapability;
+
+$report = Zalo::oa('cskh')->capabilities()->check(
+    OaCapability::CsOutside48h,
+    OaCapability::OpenApi,
+    OaCapability::Zbs,
+    OaCapability::ZbsQuota,
+    OaCapability::ZbsTemplates,
+    OaCapability::zbsTemplate(id: '433555'),
+    OaCapability::zbsSend(templateId: '433555'),
+);
+
+$report->available(OaCapability::Zbs);
+$report->get(OaCapability::ZbsQuota)->remain;
+$report->toArray();
+
+Zalo::oa('cskh')->capabilities()->check('open_api', 'zbs', 'zbs_quota');
+Zalo::oa('cskh')->capabilities()->check(); // built-in; template/send cần id thì skip + hint
+```
+
+`zbs_send` gộp: ZBS gọi được + mẫu ENABLE + `remainingQuota > 0`. Không POST
+`/message/template`.
+
+```php
+CapabilityRegistry::extend('my_key', function ($snapshot, $options) {
+    return new CapabilityResult(
+        key: 'my_key',
+        available: true,
+        value: $snapshot->packageName(),
+    );
+});
 ```
 
 ## Nhận tin nhắn
@@ -385,6 +507,8 @@ class TraLoiBot
 | `ZaloMessageReceived` | Người dùng gửi tin nhắn tới OA |
 | `ZaloFollowerAdded` | Người dùng quan tâm OA |
 | `ZaloFollowerRemoved` | Người dùng bỏ quan tâm |
+| `ZaloTemplateStatusChanged` | Template ZBS đổi trạng thái (duyệt / từ chối / …) |
+| `ZaloOaDailyQuotaChanged` | Hạn mức gửi tin ZBS theo ngày thay đổi |
 | `ZaloOaConnected` | OA vừa được cấp quyền |
 | `ZaloOaDisconnected` | OA mất kết nối, cần cấp quyền lại |
 | `ZaloBotUpdateReceived` | Mọi update của Bot, kèm payload gốc |
@@ -589,8 +713,10 @@ Token lưu trong DB được mã hoá bằng `APP_KEY`. Đổi `APP_KEY` sẽ l�
 | `zalo:bot:chats {bot?}` | Liệt kê `chat_id` đã ghi nhận |
 | `zalo:bot:send {bot} {chat} {text?}` | Gửi tin · `--photo=` · `--sticker=` |
 | `zalo:zbs:templates {oa?}` | Liệt kê mẫu ZBS · `--id=` · `--enabled` |
+| `zalo:zbs:create {file}` | Tạo mẫu từ file JSON |
 | `zalo:zbs:send {sđt} {mẫu} {json}` | Gửi tin ZBS · `--production` |
-| `zalo:zbs:status {msg_id}` | Tra trạng thái giao tin |
+| `zalo:zbs:status {msg_id}` | Tra trạng thái giao tin · `--watch` · `--timeout=` · `--interval=` |
+| `zalo:zbs:wait {id}` | Poll duyệt template · `--until=` · `--timeout=` |
 Gặp vấn đề thì chạy `zalo:doctor` trước — lệnh này kiểm credential, redirect URI, bảng, mã hoá, giao diện, scheduler, từng OA và từng Bot.
 
 ## Phát triển package

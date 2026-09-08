@@ -7,6 +7,7 @@ namespace FieldVn\Zalo\Core\Channels\OA;
 use FieldVn\Zalo\Contracts\Channel;
 use FieldVn\Zalo\Contracts\Transport;
 use FieldVn\Zalo\Core\Auth\RefreshingTokenProvider;
+use FieldVn\Zalo\Core\Channels\OA\Capabilities\OaCapabilities;
 use FieldVn\Zalo\Core\Channels\OA\Resources\MessageResource;
 use FieldVn\Zalo\Core\Channels\OA\Resources\TagResource;
 use FieldVn\Zalo\Core\Channels\OA\Resources\UploadResource;
@@ -50,6 +51,14 @@ final class OAChannel implements Channel
     public function users(): UserResource
     {
         return new UserResource($this->request());
+    }
+
+    /**
+     * Hạn mức / quyền gói OA và ZBS — luôn trả report, không throw khi thiếu tính năng.
+     */
+    public function capabilities(): OaCapabilities
+    {
+        return new OaCapabilities($this);
     }
 
     /**

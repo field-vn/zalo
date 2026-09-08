@@ -63,7 +63,7 @@ class BotWebhookCommand extends Command
                 default => $this->hint($url, $secret),
             };
         } catch (ApiException $e) {
-            $this->components->error("Zalo từ chối — mã {$e->errorCode}: {$e->getMessage()}");
+            $this->components->error($e->explain());
 
             return self::FAILURE;
         }

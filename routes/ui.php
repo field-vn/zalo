@@ -48,3 +48,6 @@ Route::get('oa/{oa}/authorize', [AuthorizeController::class, 'redirect'])
 
 Route::get('oauth/callback', [AuthorizeController::class, 'callback'])
     ->name('zalo.oauth.callback');
+
+Route::get('oauth/connected', [AuthorizeController::class, 'connected'])
+    ->name('zalo.oauth.connected');

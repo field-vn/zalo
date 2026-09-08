@@ -47,7 +47,17 @@ final class OAuthState
         // Dùng một lần: xoá ngay để không replay được.
         Cache::forget($key);
 
-        return is_int($oaId) ? $oaId : null;
+        if (is_int($oaId)) {
+            return $oaId;
+        }
+
+        // Redis (và vài driver khác) round-trip integer thành string.
+        // `is_int` fail → callback vừa cấp quyền báo hết hạn 10 phút.
+        if (is_string($oaId) && ctype_digit($oaId)) {
+            return (int) $oaId;
+        }
+
+        return null;
     }
 
     public static function ttlMinutes(): int
