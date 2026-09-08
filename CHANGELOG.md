@@ -242,7 +242,6 @@ Bản phát hành đầu tiên.
   Message. ZBS Template Message chưa được hỗ trợ.
 
 [Unreleased]: https://github.com/field-vn/zalo/compare/v0.2.7...HEAD
-[0.3.0]: https://github.com/field-vn/zalo/releases/tag/v0.3.0
 [0.2.7]: https://github.com/field-vn/zalo/releases/tag/v0.2.7
 [0.2.6]: https://github.com/field-vn/zalo/releases/tag/v0.2.6
 [0.2.2]: https://github.com/field-vn/zalo/releases/tag/v0.2.2
