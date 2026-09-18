@@ -9,11 +9,14 @@ use FieldVn\Zalo\Core\Exceptions\ZaloException;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
 use FieldVn\Zalo\Laravel\Support\Authorizer;
 use FieldVn\Zalo\Laravel\Support\OAuthState;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class AuthorizeController
 {
+    public const CONNECTED_REDIRECT_SECONDS = 5;
+
     public function __construct(private readonly Authorizer $authorizer) {}
 
     /**
@@ -31,7 +34,7 @@ class AuthorizeController
     /** Zalo chuyển admin về đây kèm `code`. */
     public function callback(Request $request, OaRepository $oas): RedirectResponse
     {
-        $home = redirect()->to(url((string) config('zalo.ui.path', 'zalo')));
+        $home = redirect()->route('zalo.dashboard');
 
         // Admin bấm "Từ chối" — không phải lỗi, đừng hiển thị như lỗi hệ thống.
         if ($request->filled('error')) {
@@ -63,11 +66,50 @@ class AuthorizeController
         }
 
         try {
-            $this->authorizer->completeWithCode($record, $code);
+            $connected = $this->authorizer->completeWithCode($record, $code);
         } catch (ZaloException $e) {
             return $home->with('zalo.error', 'Cấp quyền thất bại: '.$e->getMessage());
         }
 
-        return $home->with('zalo.success', "Đã kết nối OA `{$record->slug}` thành công.");
+        $name = trim((string) $connected->name);
+        $slug = trim((string) $connected->slug);
+
+        return redirect()
+            ->route('zalo.oauth.connected')
+            ->with('zalo.connected', [
+                'name' => $name !== '' ? $name : $slug,
+                'slug' => $slug,
+            ]);
+    }
+
+    /**
+     * Trang báo liên kết xong — tách khỏi dashboard vì `/zalo` là UI kỹ thuật,
+     * flash một dòng trên tổng quan dễ trôi.
+     */
+    public function connected(Request $request): View|RedirectResponse
+    {
+        /** @var array{name?:mixed, slug?:mixed} $payload */
+        $payload = $request->session()->get('zalo.connected', []);
+        $name = trim((string) ($payload['name'] ?? ''));
+        $slug = trim((string) ($payload['slug'] ?? ''));
+
+        if ($name === '' && $slug === '') {
+            return redirect()->away($this->appHomeUrl());
+        }
+
+        return view('zalo::oauth-connected', [
+            'oaName' => $name !== '' ? $name : $slug,
+            'oaSlug' => $slug,
+            'homeUrl' => $this->appHomeUrl(),
+            'redirectSeconds' => self::CONNECTED_REDIRECT_SECONDS,
+        ]);
+    }
+
+    /** Trang chủ sản phẩm (`APP_URL`), không phải UI kỹ thuật `/zalo`. */
+    private function appHomeUrl(): string
+    {
+        $fromConfig = trim((string) config('app.url'), '/');
+
+        return $fromConfig !== '' ? $fromConfig : url('/');
     }
 }

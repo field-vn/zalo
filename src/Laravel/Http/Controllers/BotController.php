@@ -160,7 +160,7 @@ class BotController
                 : $channel->photo($data['chat_id'], $photo, $data['text']);
         } catch (ApiException $e) {
             // In cả mã lỗi: tài liệu Zalo tra theo mã, không tra theo câu chữ.
-            return back()->with('zalo.error', "Zalo từ chối — mã {$e->errorCode}: {$e->getMessage()}");
+            return back()->with('zalo.error', $e->explain());
         } catch (ZaloException $e) {
             return back()->with('zalo.error', $e->getMessage());
         }

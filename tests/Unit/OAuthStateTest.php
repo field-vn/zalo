@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use FieldVn\Zalo\Laravel\Support\OAuthState;
+use Illuminate\Support\Facades\Cache;
 
 it('sinh state đủ dài để không đoán được', function (): void {
     expect(strlen(OAuthState::issue(1)))->toBe(40);
@@ -33,4 +34,11 @@ it('state của OA này không dùng cho OA khác', function (): void {
 
     expect(OAuthState::consume($a))->toBe(1)
         ->and(OAuthState::consume($b))->toBe(2);
+});
+
+it('chấp nhận OA id bị cache round-trip thành string', function (): void {
+    $state = OAuthState::issue(42);
+    Cache::put('zalo:oauth:state:'.$state, '42', now()->addMinutes(10));
+
+    expect(OAuthState::consume($state))->toBe(42);
 });

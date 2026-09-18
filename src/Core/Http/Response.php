@@ -22,6 +22,8 @@ final class Response implements ArrayAccess
         public readonly int $status,
         public readonly array $data = [],
         public readonly string $raw = '',
+        /** @var array<string, string> */
+        public readonly array $headers = [],
     ) {}
 
     public function successful(): bool
@@ -72,6 +74,17 @@ final class Response implements ArrayAccess
     public function payload(): mixed
     {
         return $this->data['data'] ?? $this->data['result'] ?? $this->data;
+    }
+
+    public function header(string $name): ?string
+    {
+        foreach ($this->headers as $key => $value) {
+            if (strcasecmp($key, $name) === 0) {
+                return $value;
+            }
+        }
+
+        return null;
     }
 
     public function get(string $key, mixed $default = null): mixed

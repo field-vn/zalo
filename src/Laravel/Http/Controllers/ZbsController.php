@@ -10,6 +10,7 @@ use FieldVn\Zalo\Core\Exceptions\ApiException;
 use FieldVn\Zalo\Core\Exceptions\ConfigurationException;
 use FieldVn\Zalo\Core\Exceptions\ZaloException;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
+use FieldVn\Zalo\Laravel\Support\ZbsPreviewUrl;
 use FieldVn\Zalo\Support\PhoneNumber;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -28,6 +29,7 @@ class ZbsController
         $templates = [];
         $quota = null;
         $error = null;
+        $zbs = null;
 
         try {
             $zbs = $zalo->oa($oa->slug)->zbs();
@@ -38,15 +40,28 @@ class ZbsController
             /** @var array<string, mixed> $quota */
             $quota = (array) $zbs->quota()->payload();
         } catch (ApiException $e) {
-            $error = $this->explain($e);
+            $error = $e->explain();
         } catch (ZaloException $e) {
-            $error = $e->getMessage();
+            $error = $e->explain();
         }
 
         $selected = null;
         $wanted = trim((string) $request->query('template', ''));
 
-        if ($wanted !== '') {
+        if ($wanted !== '' && $zbs !== null) {
+            try {
+                $detail = $zbs->info($wanted)->payload();
+
+                if (is_array($detail) && $detail !== []) {
+                    /** @var array<string, mixed> $detail */
+                    $selected = $detail;
+                }
+            } catch (ApiException) {
+                // Giữ bản từ danh sách nếu info/v2 lỗi — trang vẫn gửi được.
+            }
+        }
+
+        if ($selected === null && $wanted !== '') {
             foreach ($templates as $t) {
                 if ((string) ($t['templateId'] ?? $t['template_id'] ?? '') === $wanted) {
                     $selected = $t;
@@ -65,6 +80,9 @@ class ZbsController
             // hiện đủ tham số. Khi đó không dựng được form nên phải cho nhập
             // JSON tay, nếu không người dùng kẹt cứng cho tới lúc duyệt xong.
             'params' => $selected === null ? [] : (array) ($selected['listParams'] ?? []),
+            'previewUrl' => $selected === null
+                ? null
+                : ZbsPreviewUrl::from($selected['previewUrl'] ?? $selected['preview_url'] ?? null),
             'mode' => (string) config('zalo.zbs.mode', ZbsResource::MODE_DEVELOPMENT),
         ]);
     }
@@ -113,7 +131,7 @@ class ZbsController
                 mode: $production ? ZbsResource::MODE_PRODUCTION : ZbsResource::MODE_DEVELOPMENT,
             );
         } catch (ApiException $e) {
-            return back()->withInput()->with('zalo.error', $this->explain($e));
+            return back()->withInput()->with('zalo.error', $e->explain());
         } catch (ZaloException $e) {
             return back()->withInput()->with('zalo.error', $e->getMessage());
         }
@@ -138,7 +156,7 @@ class ZbsController
         try {
             $response = $zalo->oa($oa->slug)->zbs()->status($data['message_id']);
         } catch (ApiException $e) {
-            return back()->with('zalo.error', $this->explain($e));
+            return back()->with('zalo.error', $e->explain());
         } catch (ZaloException $e) {
             return back()->with('zalo.error', $e->getMessage());
         }
@@ -208,27 +226,6 @@ class ZbsController
         }
 
         return $out;
-    }
-
-    /** Dịch mã lỗi ZBS sang câu nói được phải làm gì. */
-    private function explain(ApiException $e): string
-    {
-        $hint = match ($e->errorCode) {
-            -124 => ' Token OA hết hạn — bấm Cấp lại quyền.',
-            -120, -135, -138 => ' OA hoặc App chưa được cấp quyền dùng ZBS. Đăng ký tài khoản ZBS tại zalo.solutions và liên kết với App.',
-            -127 => ' Ở chế độ development, số nhận PHẢI là quản trị viên của OA hoặc của App đang giữ token.',
-            -126 => ' Ví development đã hết số dư.',
-            -115 => ' Số dư ZBS không đủ.',
-            -131 => ' Mẫu chưa được phê duyệt.',
-            -108 => ' Số điện thoại không hợp lệ, hoặc chưa đăng ký Zalo.',
-            -118 => ' Số này chưa có tài khoản Zalo, hoặc đã vô hiệu hoá trên 30 ngày.',
-            -1122 => ' Thiếu tham số — điền đủ mọi ô mà mẫu yêu cầu.',
-            -1124 => ' Một tham số sai định dạng. Kiểm lại cột "Cài đặt kỹ thuật" của mẫu bên Zalo: giá trị phải khớp KIỂU đã khai, không chỉ khớp tên.',
-            -133 => ' Zalo không gửi mẫu này trong khung 22h–6h.',
-            default => '',
-        };
-
-        return "Zalo từ chối — mã {$e->errorCode}: {$e->getMessage()}.".$hint;
     }
 
     /** Chuẩn hoá số để hiện lại cho người dùng thấy cái sẽ thực sự gửi đi. */

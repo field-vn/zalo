@@ -58,7 +58,7 @@ class BotSendCommand extends Command
             };
         } catch (ApiException $e) {
             $this->newLine();
-            $this->components->error("Zalo từ chối — mã {$e->errorCode}: {$e->getMessage()}");
+            $this->components->error($e->explain());
 
             if ($e->isTokenError()) {
                 $this->line('  <fg=gray>Token bot sai hoặc bị thu hồi — lấy lại trong Zalo Bot Studio.</>');

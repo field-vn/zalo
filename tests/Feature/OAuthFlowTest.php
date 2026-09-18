@@ -131,6 +131,36 @@ it('vẫn giữ token khi lấy thông tin OA thất bại', function (): void {
         ->and($oa->is_active)->toBeTrue();
 });
 
+it('gộp vào OA đã có cùng oa_id thay vì đụng unique', function (): void {
+    fakeTransport()
+        ->push(tokenResponse('access-2', 'refresh-2'))
+        ->push(['data' => [
+            'name' => 'Lex Firm',
+            'oa_id' => '999',
+        ]]);
+
+    $canonical = oaRecord([
+        'slug' => 'org-1',
+        'oa_id' => '999',
+        'meta' => ['organization_id' => 1],
+    ]);
+    $placeholder = oaRecord([
+        'slug' => 'org-2',
+        'oa_id' => 'pending-org-2',
+        'meta' => ['organization_id' => 2],
+    ]);
+
+    $result = app(Authorizer::class)->completeWithCode($placeholder, 'ma-cap-quyen');
+
+    expect($result->id)->toBe($canonical->id)
+        ->and($result->oa_id)->toBe('999')
+        ->and($result->name)->toBe('Lex Firm')
+        ->and($result->token?->access_token)->toBe('access-2')
+        ->and(ZaloOa::withTrashed()->where('slug', 'org-2')->exists())->toBeFalse()
+        ->and($result->meta['organization_ids'] ?? [])->toContain(1)
+        ->and($result->meta['organization_ids'] ?? [])->toContain(2);
+});
+
 it('bắn event ZaloOaConnected', function (): void {
     Event::fake([ZaloOaConnected::class]);
     fakeTransport()->push(tokenResponse())->push(['data' => []]);
@@ -140,19 +170,37 @@ it('bắn event ZaloOaConnected', function (): void {
     Event::assertDispatched(ZaloOaConnected::class);
 });
 
-it('callback với state hợp lệ thì lưu token', function (): void {
+it('callback với state hợp lệ thì tới trang thông báo riêng', function (): void {
     withUiCredentials();
-    fakeTransport()->push(tokenResponse())->push(['data' => []]);
+    fakeTransport()->push(tokenResponse())->push(['data' => ['name' => 'CSKH Shop']]);
 
     $oa = oaRecord();
     $state = OAuthState::issue((int) $oa->getKey());
 
     $this->withHeaders(basicAuthHeader())
         ->get("/zalo/oauth/callback?code=abc&state={$state}")
-        ->assertRedirect()
-        ->assertSessionHas('zalo.success');
+        ->assertRedirect('/zalo/oauth/connected')
+        ->assertSessionHas('zalo.connected.slug', 'cskh');
 
     expect($oa->fresh()->token)->not->toBeNull();
+
+    $this->withHeaders(basicAuthHeader())
+        ->get('/zalo/oauth/connected')
+        ->assertOk()
+        ->assertSee('Đã liên kết Official Account', false)
+        ->assertSee('đã kết nối thành công', false)
+        ->assertDontSee('>OK<', false)
+        ->assertSee('Về trang chủ', false)
+        ->assertSee('href="'.(rtrim((string) config('app.url'), '/') ?: url('/')).'"', false)
+        ->assertSee('Tự chuyển về trang chủ sau', false);
+});
+
+it('trang thông báo không có phiên thì về APP_URL', function (): void {
+    withUiCredentials();
+
+    $this->withHeaders(basicAuthHeader())
+        ->get('/zalo/oauth/connected')
+        ->assertRedirect(rtrim((string) config('app.url'), '/') ?: url('/'));
 });
 
 it('callback với state sai thì KHÔNG lưu gì', function (): void {

@@ -88,3 +88,31 @@ it('oa_send_text lấy OA từ sender.id', function (): void {
 
     expect($event->oaId)->toBe('oa-echo');
 });
+
+it('change_oa_daily_quota lấy OA từ oaId camelCase', function (): void {
+    $event = WebhookEvent::fromPayload([
+        'app_id' => 'app-1',
+        'event_name' => 'change_oa_daily_quota',
+        'timestamp' => '1',
+        'oaId' => 'oa-quota',
+        'quota' => ['prev_value' => 1000, 'new_value' => 2000],
+    ]);
+
+    expect($event->oaId)->toBe('oa-quota')
+        ->and($event->isOaDailyQuotaChange())->toBeTrue()
+        ->and($event->isTemplateStatusChange())->toBeFalse();
+});
+
+it('change_template_status lấy OA từ oa_id', function (): void {
+    $event = WebhookEvent::fromPayload([
+        'app_id' => 'app-1',
+        'event_name' => 'change_template_status',
+        'timestamp' => '1',
+        'oa_id' => 'oa-tpl',
+        'template_id' => '31239',
+        'status' => ['prev_status' => 'PENDING_REVIEW', 'new_status' => 'ENABLE'],
+    ]);
+
+    expect($event->oaId)->toBe('oa-tpl')
+        ->and($event->isTemplateStatusChange())->toBeTrue();
+});

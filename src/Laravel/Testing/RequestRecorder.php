@@ -24,10 +24,13 @@ final class RequestRecorder
     /** @var array<string, mixed>|null */
     private ?array $default = null;
 
-    /** @param array<string, mixed> $data */
-    public function push(array $data, int $status = 200): self
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<string, string>  $headers
+     */
+    public function push(array $data, int $status = 200, array $headers = []): self
     {
-        $this->queue[] = new Response($status, $data, (string) json_encode($data));
+        $this->queue[] = new Response($status, $data, (string) json_encode($data), $headers);
 
         return $this;
     }

@@ -137,6 +137,14 @@ final class GuzzleTransport implements Transport
         /** @var array<string, mixed> $decoded */
         $decoded = json_decode($raw, true) ?: [];
 
-        return new Response($psr->getStatusCode(), $decoded, $raw);
+        $headers = [];
+
+        foreach (['X-RateLimit-Limit', 'X-RateLimit-Remain'] as $name) {
+            if ($psr->hasHeader($name)) {
+                $headers[$name] = $psr->getHeaderLine($name);
+            }
+        }
+
+        return new Response($psr->getStatusCode(), $decoded, $raw, $headers);
     }
 }

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title>Zalo · @yield('title', 'Bảng điều khiển')</title>
+    @stack('head')
 
     {{--
         CSS nhúng thẳng thay vì publish ra public/vendor.

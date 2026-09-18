@@ -126,3 +126,9 @@ code, .zl-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, mon
 
 details > summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 4px 0; }
 .zl-empty { text-align: center; padding: 36px 20px; color: var(--zl-muted); }
+
+.zl-result { max-width: 420px; margin: 36px auto 0; text-align: center; }
+.zl-result h1 { font-size: 24px; }
+.zl-result .zl-sub { margin-bottom: 20px; }
+.zl-result .zl-btn { margin-top: 4px; min-width: 160px; }
+.zl-result #zl-redirect-hint { margin-top: 14px; }

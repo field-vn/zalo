@@ -44,6 +44,7 @@
         @if ($templates === [])
             <div class="zl-alert zl-alert-warn" style="margin:0">
                 OA này chưa có mẫu tin nào. Tạo mẫu trong tài khoản ZBS rồi gửi duyệt.
+                Package không xoá được mẫu — Zalo không có Open API xoá/disable.
             </div>
         @else
             <div class="zl-table-scroll">
@@ -106,6 +107,17 @@
                     Mẫu đang chờ duyệt. Chế độ <strong>development</strong> vẫn gửi được,
                     nhưng chỉ tới <strong>quản trị viên của OA hoặc của App</strong> đang giữ token.
                 </div>
+            @endif
+
+            @if (! empty($selected['reason']))
+                <p class="zl-hint">Lý do trạng thái: {{ $selected['reason'] }}</p>
+            @endif
+
+            @if ($previewUrl !== null)
+                <p class="zl-hint">
+                    Xem trước:
+                    <a href="{{ $previewUrl }}" target="_blank" rel="noopener noreferrer">{{ $previewUrl }}</a>
+                </p>
             @endif
 
             <form method="POST" action="{{ route('zalo.oas.zbs.send', $oa) }}">

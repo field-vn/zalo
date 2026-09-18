@@ -23,7 +23,10 @@ class ZbsStatusCommand extends Command
 
     protected $signature = 'zalo:zbs:status
         {message : msg_id trả về lúc gửi}
-        {--oa= : Slug của OA. Bỏ trống thì dùng OA mặc định}';
+        {--oa= : Slug của OA. Bỏ trống thì dùng OA mặc định}
+        {--watch : Poll đến khi giao hoặc tin không tồn tại}
+        {--timeout=60 : Số giây chờ tối đa khi --watch}
+        {--interval=3 : Giây giữa mỗi lần hỏi khi --watch}';
 
     protected $description = 'Tra trạng thái giao tin của một tin ZBS đã gửi';
 
@@ -31,9 +34,17 @@ class ZbsStatusCommand extends Command
     {
         try {
             $oa = $zalo->oa($this->stringOption('oa') ?: null);
-            $response = $oa->zbs()->status($this->stringArgument('message'));
+            $zbs = $oa->zbs();
+            $messageId = $this->stringArgument('message');
+            $response = $this->option('watch')
+                ? $zbs->waitForDelivery(
+                    $messageId,
+                    timeoutSeconds: $this->intOption('timeout', 60),
+                    intervalSeconds: $this->intOption('interval', 3),
+                )
+                : $zbs->status($messageId);
         } catch (ApiException $e) {
-            $this->components->error("Zalo từ chối — mã {$e->errorCode}: {$e->getMessage()}");
+            $this->components->error($e->explain());
 
             return self::FAILURE;
         } catch (ZaloException $e) {

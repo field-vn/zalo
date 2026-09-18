@@ -66,3 +66,9 @@ it('OA `data` được ưu tiên hơn `result`', function (): void {
 it('HTTP 5xx luôn là thất bại kể cả body rỗng', function (): void {
     expect((new Response(502))->successful())->toBeFalse();
 });
+
+it('giữ header X-RateLimit không phân biệt hoa thường', function (): void {
+    $r = new Response(200, ['error' => 0], '', ['X-RateLimit-Remain' => '9']);
+
+    expect($r->header('x-ratelimit-remain'))->toBe('9');
+});

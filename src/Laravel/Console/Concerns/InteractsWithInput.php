@@ -31,6 +31,21 @@ trait InteractsWithInput
         return is_string($value) ? trim($value) : $default;
     }
 
+    protected function intOption(string $key, int $default): int
+    {
+        $value = $this->option($key);
+
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return $default;
+    }
+
     /**
      * Option dạng danh sách ngăn cách bởi dấu phẩy.
      *

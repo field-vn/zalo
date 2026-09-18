@@ -91,6 +91,14 @@ it('dựng ô nhập theo tham số của mẫu đã chọn', function (): void 
             ['name' => 'customer_name', 'require' => true, 'type' => 'STRING', 'maxLength' => 30],
             ['name' => 'location', 'require' => true, 'type' => 'STRING', 'maxLength' => 200],
         ],
+    ]])->push(['error' => 0, 'data' => [
+        'templateId' => '629101',
+        'templateName' => 'Lịch hẹn',
+        'status' => 'ENABLE',
+        'listParams' => [
+            ['name' => 'customer_name', 'require' => true, 'type' => 'STRING', 'maxLength' => 30],
+            ['name' => 'location', 'require' => true, 'type' => 'STRING', 'maxLength' => 200],
+        ],
     ]]);
 
     test()->withHeaders(zbsAuth())
@@ -108,12 +116,58 @@ it('cho nhập JSON tay khi mẫu chưa khai tham số', function (): void {
         'templateName' => 'Lịch hẹn',
         'status' => 'PENDING_REVIEW',
         'listParams' => [],
+    ]])->push(['error' => 0, 'data' => [
+        'templateId' => '629101',
+        'templateName' => 'Lịch hẹn',
+        'status' => 'PENDING_REVIEW',
+        'listParams' => [],
     ]]);
 
     test()->withHeaders(zbsAuth())
         ->get(route('zalo.oas.zbs', ['oa' => zbsOa(), 'template' => '629101']))
         ->assertOk()
         ->assertSee('name="raw"', false);
+});
+
+it('hiện lý do và preview từ info/v2 khi chọn mẫu', function (): void {
+    zbsListing(zbsNet(), [[
+        'templateId' => 629101,
+        'templateName' => 'Lịch hẹn',
+        'status' => 'REJECT',
+    ]])->push(['error' => 0, 'data' => [
+        'templateId' => '629101',
+        'templateName' => 'Lịch hẹn',
+        'status' => 'REJECT',
+        'reason' => 'Nội dung không đúng chính sách',
+        'previewUrl' => 'https://account.zalo.solutions/preview/abc',
+        'listParams' => [],
+    ]]);
+
+    test()->withHeaders(zbsAuth())
+        ->get(route('zalo.oas.zbs', ['oa' => zbsOa(), 'template' => '629101']))
+        ->assertOk()
+        ->assertSee('Nội dung không đúng chính sách')
+        ->assertSee('https://account.zalo.solutions/preview/abc');
+});
+
+it('KHÔNG gắn href khi previewUrl không phải https Zalo', function (): void {
+    zbsListing(zbsNet(), [[
+        'templateId' => 629101,
+        'templateName' => 'Lịch hẹn',
+        'status' => 'ENABLE',
+    ]])->push(['error' => 0, 'data' => [
+        'templateId' => '629101',
+        'templateName' => 'Lịch hẹn',
+        'status' => 'ENABLE',
+        'previewUrl' => 'javascript:alert(1)',
+        'listParams' => [],
+    ]]);
+
+    test()->withHeaders(zbsAuth())
+        ->get(route('zalo.oas.zbs', ['oa' => zbsOa(), 'template' => '629101']))
+        ->assertOk()
+        ->assertDontSee('javascript:alert(1)', false)
+        ->assertDontSee('href="javascript:', false);
 });
 
 /*

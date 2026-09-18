@@ -9,6 +9,7 @@ use FieldVn\Zalo\Core\Channels\OA\Resources\ZbsResource;
 use FieldVn\Zalo\Core\Exceptions\ApiException;
 use FieldVn\Zalo\Core\Exceptions\ZaloException;
 use FieldVn\Zalo\Laravel\Console\Concerns\InteractsWithInput;
+use FieldVn\Zalo\Laravel\Support\ZbsPreviewUrl;
 use Illuminate\Console\Command;
 
 /**
@@ -43,15 +44,9 @@ class ZbsTemplatesCommand extends Command
                 ? $this->showOne($oa->zbs(), $this->stringOption('id'))
                 : $this->showAll($oa->zbs());
         } catch (ApiException $e) {
-            $this->components->error("Zalo từ chối — mã {$e->errorCode}: {$e->getMessage()}");
+            $this->components->error($e->explain());
 
-            $this->line('  <fg=gray>'.match ($e->errorCode) {
-                -124 => 'Token OA hết hạn — cấp quyền lại cho OA này.',
-                -120, -135, -138 => 'OA hoặc App chưa được cấp quyền dùng ZBS. '
-                    .'Đăng ký tài khoản ZBS và liên kết với App tại zalo.solutions.',
-                -105 => 'App chưa liên kết với OA nào.',
-                default => 'Bảng mã lỗi: developers.zalo.me/docs/zalo-notification-service/phu-luc/bang-ma-loi',
-            }.'</>');
+            $this->line('  <fg=gray>'.$e->info()->docsUrl.'</>');
 
             return self::FAILURE;
         }
@@ -121,6 +116,16 @@ class ZbsTemplatesCommand extends Command
         $this->components->twoColumnDetail('<fg=gray>Tên</>', (string) ($data['templateName'] ?? '—'));
         $this->components->twoColumnDetail('<fg=gray>Trạng thái</>', (string) ($data['status'] ?? '—'));
         $this->components->twoColumnDetail('<fg=gray>Quota hôm nay</>', (string) ($data['templateRemainingQuota'] ?? '—'));
+
+        if (isset($data['reason']) && $data['reason'] !== '') {
+            $this->components->twoColumnDetail('<fg=gray>Lý do</>', (string) $data['reason']);
+        }
+
+        $preview = ZbsPreviewUrl::from($data['previewUrl'] ?? $data['preview_url'] ?? null);
+
+        if ($preview !== null) {
+            $this->components->twoColumnDetail('<fg=gray>Preview</>', $preview);
+        }
 
         /** @var list<array<string, mixed>> $params */
         $params = (array) ($data['listParams'] ?? []);

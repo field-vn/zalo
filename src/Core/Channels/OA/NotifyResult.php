@@ -9,6 +9,9 @@ namespace FieldVn\Zalo\Core\Channels\OA;
  *
  * `ok=true` chỉ khi Zalo đã nhận tin (CS hoặc ZBS). `skipped` dùng channel
  * `none` kèm `reason` giải thích vì sao không gọi mạng.
+ *
+ * `errorCode` / `error` chỉ có khi thất bại do exception Zalo — skipped
+ * (recipient_empty, token_stale, …) không có mã Open API.
  */
 final class NotifyResult
 {
@@ -18,11 +21,16 @@ final class NotifyResult
 
     public const CHANNEL_NONE = 'none';
 
+    /**
+     * @param  array<string, mixed>|null  $error
+     */
     public function __construct(
         public readonly bool $ok,
         public readonly string $channel,
         public readonly mixed $messageId = null,
         public readonly ?string $reason = null,
+        public readonly ?int $errorCode = null,
+        public readonly ?array $error = null,
     ) {}
 
     public static function sent(string $channel, mixed $messageId): self
@@ -30,9 +38,12 @@ final class NotifyResult
         return new self(true, $channel, $messageId, null);
     }
 
-    public static function failed(string $channel, string $reason): self
+    /**
+     * @param  array<string, mixed>|null  $error
+     */
+    public static function failed(string $channel, string $reason, ?int $errorCode = null, ?array $error = null): self
     {
-        return new self(false, $channel, null, $reason);
+        return new self(false, $channel, null, $reason, $errorCode, $error);
     }
 
     public static function skipped(string $reason): self

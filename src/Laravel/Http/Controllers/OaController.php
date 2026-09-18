@@ -136,34 +136,15 @@ class OaController
                 ? $messages->text($data['user_id'], $data['text'])
                 : $messages->image($data['user_id'], $attachment, $data['text']);
         } catch (ApiException $e) {
-            return back()->with('zalo.error', $this->explain($e));
+            return back()->with('zalo.error', $e->explain());
         } catch (ZaloException $e) {
-            return back()->with('zalo.error', $e->getMessage());
+            return back()->with('zalo.error', $e->explain());
         }
 
         return back()->with(
             'zalo.success',
             'Zalo đã nhận. Mở Zalo kiểm tra tin đã tới thật chưa — API báo ok không đảm bảo máy người nhận hiện được tin.'
         );
-    }
-
-    /**
-     * Dịch mã lỗi hay gặp sang câu người đọc hiểu được.
-     *
-     * Zalo trả những câu như "User is not in whitelist" mà không nói phải làm
-     * gì. Với tin Tư vấn thì nguyên nhân gần như luôn là hết hạn 7 ngày kể
-     * từ tương tác cuối của người dùng.
-     */
-    private function explain(ApiException $e): string
-    {
-        $hint = match ($e->errorCode) {
-            -216, -217, -32, -124 => ' Token hết hạn hoặc bị thu hồi — bấm Cấp lại quyền.',
-            -230, -231 => ' Người này không có tương tác với OA trong 7 ngày qua, nên OpenAPI không gửi tin Tư vấn được nữa. Dùng ZBS Template Message, hoặc chờ họ tương tác lại.',
-            -201 => ' Sai user_id, hoặc người này chưa từng tương tác với OA.',
-            default => '',
-        };
-
-        return "Zalo từ chối — mã {$e->errorCode}: {$e->getMessage()}.".$hint;
     }
 
     public function test(ZaloOa $oa, Factory $zalo): RedirectResponse

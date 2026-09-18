@@ -84,7 +84,7 @@ class ZbsSendCommand extends Command
                 mode: $mode,
             );
         } catch (ApiException $e) {
-            $this->components->error("Zalo từ chối — mã {$e->errorCode}: {$e->getMessage()}");
+            $this->components->error($e->explain());
 
             if (! $production) {
                 $this->line('  <fg=gray>Ở dev mode, số nhận PHẢI là quản trị viên của OA hoặc App.</>');

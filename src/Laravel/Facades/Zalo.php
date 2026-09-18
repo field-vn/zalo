@@ -40,6 +40,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static MessageResource messages()
  * @method static UserResource users()
  * @method static TagResource tags()
+ * @method static \FieldVn\Zalo\Core\Channels\OA\Capabilities\OaCapabilities capabilities()
  *
  * Chỉ có sau khi gọi Zalo::fake():
  * @method static void assertSent(?callable $callback = null)

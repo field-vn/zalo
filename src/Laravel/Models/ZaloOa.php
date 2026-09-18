@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $oa_id
  * @property string|null $avatar_url
  * @property array<int, string> $tags
+ * @property array<string, mixed>|null $meta
  * @property bool $is_active
  * @property ZaloOaToken|null $token
  */

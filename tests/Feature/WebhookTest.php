@@ -5,6 +5,8 @@ declare(strict_types=1);
 use FieldVn\Zalo\Laravel\Events\ZaloFollowerAdded;
 use FieldVn\Zalo\Laravel\Events\ZaloFollowerRemoved;
 use FieldVn\Zalo\Laravel\Events\ZaloMessageReceived;
+use FieldVn\Zalo\Laravel\Events\ZaloOaDailyQuotaChanged;
+use FieldVn\Zalo\Laravel\Events\ZaloTemplateStatusChanged;
 use FieldVn\Zalo\Laravel\Events\ZaloWebhookReceived;
 use FieldVn\Zalo\Laravel\Jobs\HandleZaloWebhook;
 use FieldVn\Zalo\Laravel\Models\ZaloOa;
@@ -203,4 +205,50 @@ it('route webhook KHÔNG bị chặn bởi basic auth của UI', function (): vo
     Event::fake();
 
     postWebhook(messagePayload())->assertOk();
+});
+
+it('bắn ZaloTemplateStatusChanged khi template đổi trạng thái', function (): void {
+    Event::fake();
+    ZaloOa::create(['name' => 'CSKH', 'slug' => 'cskh', 'oa_id' => 'oa-999']);
+
+    postWebhook([
+        'app_id' => 'app-1',
+        'oa_id' => 'oa-999',
+        'event_name' => 'change_template_status',
+        'timestamp' => (string) (time() * 1000),
+        'template_id' => '31239',
+        'status' => ['prev_status' => 'PENDING_REVIEW', 'new_status' => 'REJECT'],
+        'reason' => 'Nội dung không đạt',
+    ])->assertOk();
+
+    Event::assertDispatched(
+        ZaloTemplateStatusChanged::class,
+        fn (ZaloTemplateStatusChanged $e): bool => $e->templateId === '31239'
+            && $e->prevStatus === 'PENDING_REVIEW'
+            && $e->newStatus === 'REJECT'
+            && $e->reason === 'Nội dung không đạt'
+            && $e->oa?->slug === 'cskh',
+    );
+    Event::assertDispatched(ZaloWebhookReceived::class);
+    Event::assertNotDispatched(ZaloMessageReceived::class);
+});
+
+it('bắn ZaloOaDailyQuotaChanged và nhận oaId camelCase', function (): void {
+    Event::fake();
+    ZaloOa::create(['name' => 'CSKH', 'slug' => 'cskh', 'oa_id' => 'oa-999']);
+
+    postWebhook([
+        'app_id' => 'app-1',
+        'oaId' => 'oa-999',
+        'event_name' => 'change_oa_daily_quota',
+        'timestamp' => (string) (time() * 1000),
+        'quota' => ['prev_value' => 1000, 'new_value' => 2000],
+    ])->assertOk();
+
+    Event::assertDispatched(
+        ZaloOaDailyQuotaChanged::class,
+        fn (ZaloOaDailyQuotaChanged $e): bool => $e->prevValue === 1000
+            && $e->newValue === 2000
+            && $e->oa?->slug === 'cskh',
+    );
 });

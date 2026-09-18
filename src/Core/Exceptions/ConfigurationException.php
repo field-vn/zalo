@@ -4,12 +4,38 @@ declare(strict_types=1);
 
 namespace FieldVn\Zalo\Core\Exceptions;
 
+use FieldVn\Zalo\Core\Errors\ErrorCatalog;
+use FieldVn\Zalo\Core\Errors\ErrorInfo;
+
 /**
  * Cấu hình sai. Thông báo luôn kèm cách sửa cụ thể — người đọc exception
  * này thường đang bối rối, đừng bắt họ đi tra tài liệu.
  */
 class ConfigurationException extends ZaloException
 {
+    public function source(): string
+    {
+        return 'config';
+    }
+
+    public function explain(): string
+    {
+        return $this->getMessage();
+    }
+
+    public function info(): ErrorInfo
+    {
+        return new ErrorInfo(
+            code: 0,
+            message: $this->getMessage(),
+            description: 'Cấu hình package hoặc OA/Bot chưa đủ để gọi API.',
+            hint: $this->getMessage(),
+            category: 'config',
+            source: 'config',
+            docsUrl: ErrorCatalog::OA_DOCS,
+        );
+    }
+
     public static function oaNotFound(string|int|null $key): self
     {
         $key = $key === null ? '(mặc định)' : (string) $key;

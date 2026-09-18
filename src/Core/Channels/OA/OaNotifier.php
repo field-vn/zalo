@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FieldVn\Zalo\Core\Channels\OA;
 
-use FieldVn\Zalo\Core\Exceptions\ConfigurationException;
+use FieldVn\Zalo\Core\Exceptions\ApiException;
 use FieldVn\Zalo\Core\Exceptions\ZaloException;
 use FieldVn\Zalo\Core\Http\Response;
 use FieldVn\Zalo\Laravel\Models\ZaloContact;
@@ -89,11 +89,15 @@ final class OaNotifier
             }
 
             return NotifyResult::skipped('zbs_unavailable');
-        } catch (ZaloException|ConfigurationException $e) {
+        } catch (ZaloException $e) {
             // 5. Lỗi API / cấu hình — giữ channel đang thử (CS fail không fallback ZBS).
+            $code = $e instanceof ApiException ? $e->errorCode : $e->getCode();
+
             return NotifyResult::failed(
                 $channel === NotifyResult::CHANNEL_NONE ? NotifyResult::CHANNEL_NONE : $channel,
                 $e->getMessage(),
+                $code !== 0 ? $code : null,
+                $e->toArray(),
             );
         }
     }
