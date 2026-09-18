@@ -10,6 +10,14 @@ phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
 ## [Unreleased]
 
+## [0.2.8] — 2026-09-18
+
+### Fixed
+
+- **PHPStan không phân tích được `Authorizer` vì thiếu `$meta` trên `ZaloOa`.**
+  Khai `@property array<string, mixed>|null $meta` — cột đã cast `array` từ
+  trước, dùng khi gộp OA trùng `oa_id` (`organization_id` / `organization_ids`).
+
 ## [0.2.7] — 2026-09-08
 
 ### Added
@@ -241,7 +249,8 @@ Bản phát hành đầu tiên.
   01/01/2026, thời điểm Zalo hợp nhất chúng cùng ZNS thành ZBS Template
   Message. ZBS Template Message chưa được hỗ trợ.
 
-[Unreleased]: https://github.com/field-vn/zalo/compare/v0.2.7...HEAD
+[Unreleased]: https://github.com/field-vn/zalo/compare/v0.2.8...HEAD
+[0.2.8]: https://github.com/field-vn/zalo/releases/tag/v0.2.8
 [0.2.7]: https://github.com/field-vn/zalo/releases/tag/v0.2.7
 [0.2.6]: https://github.com/field-vn/zalo/releases/tag/v0.2.6
 [0.2.2]: https://github.com/field-vn/zalo/releases/tag/v0.2.2
